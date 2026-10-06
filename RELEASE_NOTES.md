@@ -6,6 +6,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] — 2026-10-06
+
+Category CRUD, the first application layer on top of the schema.
+
+### Added
+
+**Spring Boot project (`quitq_backend/`)**
+
+- Maven, Java 21, Spring Boot 3.5.16, packaged as a runnable JAR.
+- Dependencies: Web, Data JPA, MySQL Driver, Security, Lombok, Validation.
+  `SecurityAutoConfiguration` is excluded so the app starts without auth.
+- `application.properties` targets `quitq_db` with
+  `createDatabaseIfNotExist=true` and `spring.jpa.hibernate.ddl-auto=update`.
+
+**Layered code**
+
+- `Category` entity mapped to the existing `category` table.
+- `CategoryRepository` extending `JpaRepository`.
+- `CategoryService` with `insert`, `getAll`, `getById`, `deleteById`;
+  an invalid id raises `ResourceNotFoundException`.
+- `GlobalExceptionHandler` replying with an `ErrorDto`
+  (`message`, `comments`, `timestamp`) and HTTP 400.
+- `CategoryController` exposing the four endpoints.
+
+### Endpoints
+
+| Method | URL | Result |
+| :-- | :-- | :-- |
+| POST | `/api/category/add` | 200 with the saved record |
+| GET | `/api/category/all` | 200 with every category |
+| GET | `/api/category/{id}` | 200, or 400 `ErrorDto` for an unknown id |
+| DELETE | `/api/category/{id}` | 200 |
+
+### Notes
+
+- `Category.id` is a `Long` but declares
+  `columnDefinition = "INT AUTO_INCREMENT"` so Hibernate matches the existing
+  `id INT` column instead of widening it to `BIGINT`, which MySQL rejects
+  because `product.category_id` references it.
+
+---
+
 ## [1.0.0] — 2026-10-02
 
 First public cut of the QuitQ design and persistence layer.
@@ -78,4 +120,5 @@ a database containing data you wish to keep.
 
 ---
 
+[1.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.1.0
 [1.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.0.0
