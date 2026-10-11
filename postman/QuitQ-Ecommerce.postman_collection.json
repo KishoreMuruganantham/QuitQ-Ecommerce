@@ -1,0 +1,541 @@
+{
+  "info": {
+    "name": "QuitQ Ecommerce APIs",
+    "description": "Collection for the QuitQ E-Commerce Spring Boot backend running at http://localhost:8080 (MySQL db quitq_db).\n\nOrganised one folder per application flow:\n- Flow 1 - Auth & Signup: login, customer/seller signup and user management\n- Flow 2/6/8 - Category & Product: category CRUD, product catalogue, search, filter, stock\n- Flow 3/4 - Address & Cart: shipping addresses and the shopping cart\n- Flow 4/5/7/8 - Order, Payment, Seller & Admin: order lifecycle, payments, seller order items, admin analytics\n\nSeeded data: customers 1 (john_doe / john@123) and 2 (jane / jane@123); sellers 1 (techstore) and 2 (fashionhub); categories 1 Electronics, 2 Mobile, 3 Fashion, 4 Home & Furniture; products 1 Sony WH-1000XM5, 2 Dell XPS 15, 3 iPhone 15 Pro, 4 Cotton Shirt, 5 Office Chair; customer 1 has shipping address 1 and order 1 (Q1791738744814, UPI, COMPLETED).\n\nThere is no authentication token: every endpoint is open and accepts JSON directly.",
+    "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Flow 1 - Auth & Signup",
+      "description": "Authentication plus customer, seller and user registration and management.",
+      "item": [
+        {
+          "name": "Login - customer john_doe",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"john@123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Authenticates a user with the LoginDto body (username, password). Returns the matching user profile with its role. No token is issued, so no further requests need to carry credentials. Expected: 200 with the user JSON, or 400 for an unknown username."
+        },
+        {
+          "name": "Signup customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/customer/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Verma\",\n  \"gender\": \"Female\",\n  \"contactNumber\": \"9876543211\",\n  \"username\": \"alice_verma\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"alice@123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Registers a new customer with the SignupDto body (name, gender, contactNumber, username, email, password). gender is optional; every other field is required. Returns the created customer with its generated id. Clean up test signups with DELETE /api/customer/{id}."
+        },
+        {
+          "name": "Signup customer - ERROR duplicate username",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/customer/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"gender\": \"Male\",\n  \"contactNumber\": \"9876543210\",\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"john@123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Error scenario: signs up with the already-registered username john_doe. Expected: 400 with message \"Username already taken\"."
+        },
+        {
+          "name": "Signup customer - ERROR empty required fields",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/customer/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"gender\": \"\",\n  \"contactNumber\": \"\",\n  \"username\": \"\",\n  \"email\": \"\",\n  \"password\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Error scenario: sends an empty body for every required field. Expected: 400 with one validation message per field (\"Name is required\", \"Contact number is required\", \"Username is required\", \"Email is required\", \"Password is required\")."
+        },
+        {
+          "name": "Get all customers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/customer/all"
+          },
+          "response": [],
+          "description": "Returns every registered customer with ids, usernames and contact details."
+        },
+        {
+          "name": "Get customer by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/customer/1"
+          },
+          "response": [],
+          "description": "Returns the customer with id 1 (john_doe). Expected: 200, or 400 for an unknown id."
+        },
+        {
+          "name": "Delete customer by id",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/customer/9"
+          },
+          "response": [],
+          "description": "Deletes the customer row with the given id (use the id returned by a test signup). Returns no body. Destructive - do not point it at the seeded customers 1 and 2."
+        },
+        {
+          "name": "Signup seller",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/seller/signup",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"businessName\": \"Gadget World\",\n  \"contactNumber\": \"9845098450\",\n  \"city\": \"Bengaluru\",\n  \"address\": \"44 Residency Road\",\n  \"username\": \"gadget_world\",\n  \"email\": \"gadgetworld@example.com\",\n  \"password\": \"gadget@123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Registers a new seller with the SellerDto body (businessName, contactNumber, city, address, username, email, password). businessName, contactNumber, username, email and password are required; city and address may be added later. Returns the created seller with its generated id."
+        },
+        {
+          "name": "Get all sellers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/seller/all"
+          },
+          "response": [],
+          "description": "Returns every seller (seeded: 1 techstore, 2 fashionhub)."
+        },
+        {
+          "name": "Get seller by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/seller/1"
+          },
+          "response": [],
+          "description": "Returns the seller with id 1 (techstore)."
+        },
+        {
+          "name": "Delete seller by id",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/seller/9"
+          },
+          "response": [],
+          "description": "Deletes the seller row with the given id. Destructive - do not point it at the seeded sellers 1 and 2, which own the catalogue products."
+        },
+        {
+          "name": "Add user",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/user/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_user\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"demo@123\",\n  \"role\": \"ROLE_CUSTOMER\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Inserts a login user directly with the UserDto body (username, email, password, role). role is one of ROLE_CUSTOMER, ROLE_SELLER, ROLE_ADMIN. Returns no body; verify with GET /api/user/all."
+        },
+        {
+          "name": "Get all users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/all"
+          },
+          "response": [],
+          "description": "Returns every login user with its role."
+        },
+        {
+          "name": "Get user by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/user/1"
+          },
+          "response": [],
+          "description": "Returns the login user with the given id."
+        },
+        {
+          "name": "Delete user by id",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/user/9"
+          },
+          "response": [],
+          "description": "Deletes the login user with the given id. Destructive - deleting a seeded user would break login for that account."
+        }
+      ]
+    },
+    {
+      "name": "Flow 2/6/8 - Category & Product",
+      "description": "Category CRUD plus the seller-owned product catalogue: add, read, search, filter and stock management.",
+      "item": [
+        {
+          "name": "Add category",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/category/add",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Books\",\n  \"description\": \"Books and stationery\",\n  \"seq\": 5\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Creates a category with the CategoryDto body (name required, description and seq optional). Returns the created category with its generated id."
+        },
+        {
+          "name": "Get all categories",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/category/all"
+          },
+          "response": [],
+          "description": "Returns all categories (seeded: 1 Electronics, 2 Mobile, 3 Fashion, 4 Home & Furniture)."
+        },
+        {
+          "name": "Get category by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/category/1"
+          },
+          "response": [],
+          "description": "Returns the category with id 1 (Electronics)."
+        },
+        {
+          "name": "Update category",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/category/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic devices and accessories\",\n  \"seq\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Replaces category 1 with the CategoryDto body and returns the updated category."
+        },
+        {
+          "name": "Delete category by id",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/category/9"
+          },
+          "response": [],
+          "description": "Deletes the category with the given id. Destructive - do not point it at the seeded categories 1-4, which the seeded products reference."
+        },
+        {
+          "name": "Add product for seller 1",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/product/add/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sony WH-1000XM5\",\n  \"brand\": \"Sony\",\n  \"description\": \"Wireless noise cancelling headphones\",\n  \"price\": 24999.0,\n  \"stockQty\": 25,\n  \"imageUrl\": \"https://example.com/images/sony-wh1000xm5.jpg\",\n  \"categoryId\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Adds a product owned by seller 1 (techstore) using the ProductDto body: name, price and stockQty are required (price must be positive, stockQty non-negative); brand, description, imageUrl and categoryId are optional. Returns the created product."
+        },
+        {
+          "name": "Get product by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/1"
+          },
+          "response": [],
+          "description": "Returns product 1 (Sony WH-1000XM5, 24999, seller 1) with its category details."
+        },
+        {
+          "name": "Get product by id - ERROR invalid id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/9999"
+          },
+          "response": [],
+          "description": "Error scenario: asks for a product that does not exist. Expected: 400 with message \"Invalid product id\"."
+        },
+        {
+          "name": "Get all products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/all"
+          },
+          "response": [],
+          "description": "Returns the full catalogue (seeded: Sony WH-1000XM5, Dell XPS 15, iPhone 15 Pro, Cotton Shirt, Office Chair)."
+        },
+        {
+          "name": "Get products by brand",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/brand?brand=Sony"
+          },
+          "response": [],
+          "description": "Returns every product whose brand matches the brand query parameter exactly (case sensitive)."
+        },
+        {
+          "name": "Get products by price range",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/price?min=1000&max=100000"
+          },
+          "response": [],
+          "description": "Returns every product priced between the inclusive min and max query parameters."
+        },
+        {
+          "name": "Search products by name",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/search?keyword=shirt"
+          },
+          "response": [],
+          "description": "Returns every product whose name contains the keyword (case insensitive partial match)."
+        },
+        {
+          "name": "Get products by category",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/category/1"
+          },
+          "response": [],
+          "description": "Returns every product in category 1 (Electronics)."
+        },
+        {
+          "name": "Dynamic product filter",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/product/filter?brand=Sony&categoryId=1&minPrice=1000&maxPrice=150000"
+          },
+          "response": [],
+          "description": "Applies any combination of the four optional query parameters brand, categoryId, minPrice and maxPrice in a single call; omitted parameters stay open and match everything. Try /api/product/filter?brand=Sony alone, or ?minPrice=1000&maxPrice=5000."
+        },
+        {
+          "name": "Mark product out of stock",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/product/1/out-of-stock"
+          },
+          "response": [],
+          "description": "Toggles the stock status of product 1 between IN_STOCK and OUT_OF_STOCK. Returns no body; confirm with GET /api/product/{id}."
+        },
+        {
+          "name": "Delete product by id",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/product/5"
+          },
+          "response": [],
+          "description": "Deletes the product with the given id. Destructive - do not point it at the seeded products 1-5 unless the deletion itself is what you are testing."
+        }
+      ]
+    },
+    {
+      "name": "Flow 3/4 - Address & Cart",
+      "description": "Shipping addresses per customer and the shopping cart (add, view, update, remove).",
+      "item": [
+        {
+          "name": "Add shipping address for customer 1",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/address/add/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientName\": \"John Doe\",\n  \"phone\": \"9876543210\",\n  \"streetAddress\": \"42 MG Road, Anna Nagar\",\n  \"city\": \"Chennai\",\n  \"state\": \"Tamil Nadu\",\n  \"postalCode\": \"600028\",\n  \"isDefault\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          },
+          "response": [],
+          "description": "Adds a ShippingAddressDto (recipientName, phone, streetAddress, city, state, postalCode all required, isDefault boolean) to customer 1 and returns it with the generated address id."
+        },
+        {
+          "name": "Get all addresses of customer 1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/address/all/1"
+          },
+          "response": [],
+          "description": "Returns every shipping address belonging to customer 1 (seeded: address 1)."
+        },
+        {
+          "name": "Get address by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/address/1"
+          },
+          "response": [],
+          "description": "Returns shipping address 1 (customer 1's default address, used by the seeded order)."
+        },
+        {
+          "name": "Delete address by id",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/address/9"
+          },
+          "response": [],
+          "description": "Deletes the address with the given id. Destructive - address 1 is the shipping address of the seeded order 1, so only delete addresses created for testing."
+        },
+        {
+          "name": "Add item to cart of customer 1",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/cart/add/1/1?quantity=1"
+          },
+          "response": [],
+          "description": "Adds product 1 (Sony WH-1000XM5) to customer 1's cart, creating the cart on first use. quantity defaults to 1. Returns the cart item with its cartItemId and line total."
+        },
+        {
+          "name": "View cart of customer 1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/cart/1"
+          },
+          "response": [],
+          "description": "Returns customer 1's cart with all cart items and the grand total."
+        },
+        {
+          "name": "Update cart item quantity",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/cart/item/1?quantity=2"
+          },
+          "response": [],
+          "description": "Sets the quantity of cart item 1 to 2 and returns the updated cart item with the recalculated line total. Use a cartItemId returned by POST /api/cart/add."
+        },
+        {
+          "name": "Remove cart item",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/cart/item/1"
+          },
+          "response": [],
+          "description": "Removes cart item 1 from the cart. Destructive to the cart contents only; use a cartItemId returned by POST /api/cart/add."
+        }
+      ]
+    },
+    {
+      "name": "Flow 4/5/7/8 - Order, Payment, Seller & Admin",
+      "description": "Order placement and tracking, payment completion, seller order items and admin analytics.",
+      "item": [
+        {
+          "name": "Checkout customer 1 with address 1 (UPI)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/order/checkout/1/1?method=UPI"
+          },
+          "response": [],
+          "description": "Converts customer 1's cart into an order shipped to address 1. The method query parameter is a PaymentMethod: UPI, COD, CREDIT_CARD, DEBIT_CARD or NET_BANKING (defaults to COD). Returns the order with its order id, order number and items. Destructive: it empties the cart, consumes stock and creates a real order - only run it when placing an order is intended."
+        },
+        {
+          "name": "Get order by id",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/order/1"
+          },
+          "response": [],
+          "description": "Returns seeded order 1 (order number Q1791738744814, UPI, COMPLETED) with its items, payment and shipping address."
+        },
+        {
+          "name": "Get orders of customer 1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/order/customer/1"
+          },
+          "response": [],
+          "description": "Returns every order placed by customer 1."
+        },
+        {
+          "name": "Get tracking of order 1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/order/1/tracking"
+          },
+          "response": [],
+          "description": "Returns the order tracking timeline of order 1 (\"Order placed successfully\" first, one row appended as the order moves through PLACED, PROCESSING, SHIPPED, DELIVERED)."
+        },
+        {
+          "name": "Get order items of seller 1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/order/seller/1"
+          },
+          "response": [],
+          "description": "Returns every order item that belongs to seller 1's products, with its current status - the seller's view for fulfilment."
+        },
+        {
+          "name": "Update order item status",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/order/item/1/status?status=SHIPPED"
+          },
+          "response": [],
+          "description": "Sets the status of order item 1. status is an OrderStatus: PLACED, PROCESSING, SHIPPED, DELIVERED or CANCELLED; the usual timeline is PLACED - PROCESSING - SHIPPED - DELIVERED. Returns the updated order item."
+        },
+        {
+          "name": "Complete payment of order 1",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/payment/1/complete?txnId=TXN12345"
+          },
+          "response": [],
+          "description": "Marks the payment of order 1 as COMPLETED and records the txnId. Payments start as PENDING at checkout. Returns the payment record with its transaction id and amount."
+        },
+        {
+          "name": "Admin - orders by status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/analytics/orders-by-status"
+          },
+          "response": [],
+          "description": "Returns the count of order items grouped by OrderStatus."
+        },
+        {
+          "name": "Admin - user count",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/users/count"
+          },
+          "response": [],
+          "description": "Returns the total number of login users."
+        },
+        {
+          "name": "Admin - seller count",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/sellers/count"
+          },
+          "response": [],
+          "description": "Returns the total number of registered sellers."
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "description": "Base URL of the running QuitQ Spring Boot backend."
+    }
+  ]
+}
