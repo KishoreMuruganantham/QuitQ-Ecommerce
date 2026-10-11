@@ -13,6 +13,7 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
+@Table(name = "users")
 public class User { //u
 
     @Id // This makes id a Primary key
