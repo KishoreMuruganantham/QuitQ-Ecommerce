@@ -1,0 +1,38 @@
+package com.springboot.quitq.controller;
+
+import com.springboot.quitq.dto.request.SellerDto;
+import com.springboot.quitq.dto.response.SellerRespDto;
+import com.springboot.quitq.service.SellerService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class SellerController {
+
+    private final SellerService sellerService;
+
+    /* SIGNUP : react app sends businessName, contact, city, address, username, email, password */
+    @PostMapping("/api/seller/signup")
+    public SellerRespDto signupSeller(@Valid @RequestBody SellerDto sellerDto){
+        return sellerService.signup(sellerDto);
+    }
+
+    @GetMapping("/api/seller/all")
+    public List<SellerRespDto> getAll(){
+        return sellerService.getAll();
+    }
+
+    @GetMapping("/api/seller/{id}") ///api/seller/1
+    public SellerRespDto getById(@PathVariable long id){ //id=1
+        return sellerService.getById(id);
+    }
+
+    @DeleteMapping("/api/seller/{id}")
+    public void deleteById(@PathVariable long id){
+        sellerService.deleteById(id);
+    }
+}
