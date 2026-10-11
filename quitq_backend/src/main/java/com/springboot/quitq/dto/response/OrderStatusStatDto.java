@@ -4,6 +4,6 @@ import com.springboot.quitq.enums.OrderStatus;
 
 public record OrderStatusStatDto(
         OrderStatus orderStatus,
-        Long numberOfOrders
+        long numberOfOrders
 ) {
 }

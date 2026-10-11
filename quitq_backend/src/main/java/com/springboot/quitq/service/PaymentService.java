@@ -22,17 +22,14 @@ public class PaymentService {
 
     public PaymentRespDto completePayment(long orderId, String transactionId) {
         // Step 1: the order must exist : pay.orders
-        Optional<Orders> optionalOrder = ordersRepository.findById(orderId);
-        if(optionalOrder.isEmpty())
-            throw new ResourceNotFoundException("Invalid order id");
+        Orders orders = ordersRepository.findById(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException("Invalid order id"));
 
-        // Step 2: the pending payment row of this order -- created by checkout at Step 9
-        Optional<Payment> optionalPayment = paymentRepository.findByOrdersId(orderId);
-        if(optionalPayment.isEmpty())
-            throw new ResourceNotFoundException("Payment not found for this order");
+        // Step 2: the pending payment row of this order
+        Payment payment = paymentRepository.findByOrdersId(orderId)
+                .orElseThrow(()-> new ResourceNotFoundException("Payment not found for this order"));
 
         // Step 3: stamp the gateway txn id and close the payment
-        Payment payment = optionalPayment.get();
         payment.setTransactionId(transactionId);
         payment.setPaymentStatus(PaymentStatus.COMPLETED);
 

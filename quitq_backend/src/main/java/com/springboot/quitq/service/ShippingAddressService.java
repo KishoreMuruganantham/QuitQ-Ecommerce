@@ -19,7 +19,7 @@ import java.util.Optional;
 public class ShippingAddressService {
 
     private final ShippingAddressRepository shippingAddressRepository;
-    private final CustomerRepository customerRepository; // injected, file owned by another agent
+    private final CustomerRepository customerRepository;
 
     public ShippingAddressRespDto add(Long customerId, ShippingAddressDto dto) {
         // Step 1: validate the customer id

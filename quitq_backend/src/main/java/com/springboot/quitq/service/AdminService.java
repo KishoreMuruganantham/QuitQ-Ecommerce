@@ -14,8 +14,8 @@ import java.util.List;
 public class AdminService {
 
     private final OrdersRepository ordersRepository;
-    private final UserRepository userRepository; // injected, file owned by another agent
-    private final SellerRepository sellerRepository; // injected, file owned by another agent
+    private final UserRepository userRepository;
+    private final SellerRepository sellerRepository;
 
     public List<OrderStatusStatDto> getOrderStatusStat() {
         // group by o.orderStatus done inside the repository

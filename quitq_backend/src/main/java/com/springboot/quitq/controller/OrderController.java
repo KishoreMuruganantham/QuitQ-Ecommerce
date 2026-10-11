@@ -50,9 +50,9 @@ public class OrderController {
     }
 
     /*
-    POST API : checkout also accepts the body variant with OrderDto (customerId, shippingAddressId,
-    paymentMethod) -- @Valid @RequestBody OrderDto orderDto -- pending decision on which one to keep.
-    */
+    POST API : checkout with body
+    OrderDto (customerId, shippingAddressId, paymentMethod)
+    * */
 }
 /*
     Order status timeline -- Flow 4, 5, 6 & 7
@@ -61,8 +61,8 @@ public class OrderController {
 
     order_tracking
     --------------
-    row 1  : seeded by trg_order_initial_tracking on INSERT INTO orders -- 'Order placed successfully'
-    row 2+ : appended as the order moves, read back by GET /api/order/{orderId}/tracking
+    row 1  : Order placed successfully
+    row 2+ : appended as the order moves
 
     order_item.status   : seller drives it via PUT /api/order/item/{orderItemId}/status?status=SHIPPED
     payment_status      : PENDING at checkout -> COMPLETED at POST /api/payment/{orderId}/complete?txnId=ABC123

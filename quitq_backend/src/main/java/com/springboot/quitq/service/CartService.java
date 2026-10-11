@@ -26,8 +26,8 @@ public class CartService {
 
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
-    private final CustomerRepository customerRepository; // injected, file owned by another agent
-    private final ProductRepository productRepository; // injected, file owned by another agent
+    private final CustomerRepository customerRepository;
+    private final ProductRepository productRepository;
 
     public CartItemInfoDto addItem(Long customerId, Long productId, Integer quantity) {
         // Step 1: find or create the customer's Cart -- one cart per customer (UNIQUE)

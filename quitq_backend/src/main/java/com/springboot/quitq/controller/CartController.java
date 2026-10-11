@@ -32,9 +32,4 @@ public class CartController {
     public void removeItem(@PathVariable long cartItemId){ //cartItemId=3
         cartService.removeItem(cartItemId);
     }
-
-    /*
-    GET API : to fetch the total bill amount of a customer cart.
-    GET API : to empty the whole cart of a customer.
-    * */
 }
