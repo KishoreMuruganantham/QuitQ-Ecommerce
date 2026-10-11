@@ -1,0 +1,38 @@
+package com.springboot.quitq.controller;
+
+import com.springboot.quitq.dto.request.CustomerDto;
+import com.springboot.quitq.dto.response.CustomerRespDto;
+import com.springboot.quitq.service.CustomerService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequiredArgsConstructor
+public class CustomerController {
+
+    private final CustomerService customerService;
+
+    /* SIGNUP : react app sends name, gender, contact, username, email, password */
+    @PostMapping("/api/customer/signup")
+    public CustomerRespDto signupCustomer(@Valid @RequestBody CustomerDto customerDto){
+        return customerService.signup(customerDto);
+    }
+
+    @GetMapping("/api/customer/all")
+    public List<CustomerRespDto> getAll(){
+        return customerService.getAll();
+    }
+
+    @GetMapping("/api/customer/{id}") ///api/customer/1
+    public CustomerRespDto getById(@PathVariable long id){ //id=1
+        return customerService.getById(id);
+    }
+
+    @DeleteMapping("/api/customer/{id}")
+    public void deleteById(@PathVariable long id){
+        customerService.deleteById(id);
+    }
+}
