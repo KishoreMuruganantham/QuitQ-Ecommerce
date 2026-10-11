@@ -6,6 +6,111 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-10-11
+
+The complete REST API layer: all eight business flows implemented on top of the
+v1.0.0 schema, with validation, JPQL and centralised exception handling.
+
+### Added
+
+**Application layer (`quitq_backend/`)**
+
+- Layered code across 11 controllers, 11 services, 12 repositories, 12
+  entities, 22 record DTOs, 7 static mappers and 5 enums — 46 endpoints in all.
+- `application.properties` targets `quitq_db` with
+  `createDatabaseIfNotExist=true` and `spring.jpa.hibernate.ddl-auto=update`,
+  so the entities map onto the existing tables without a migration.
+
+**Flow 1 — Auth & signup**
+
+- `POST /api/auth/login` resolving the profile from `LoginDto`.
+- Customer and seller signup creating the `users` row first, then the profile;
+  a taken username/email raises `DuplicateEntryException`.
+- Customer, seller and user read/delete endpoints.
+
+**Flow 2 / 6 / 8 — Category & product**
+
+- Product CRUD owned by a seller (`ProductDto`, `ProductRespDto`, `ProductInfoDto`).
+- Derived-query endpoints for brand, price range, keyword search and category.
+- **Dynamic filter** — `GET /api/product/filter` with optional `brand`,
+  `categoryId`, `minPrice`, `maxPrice`, bound through the `(?N IS NULL OR …)`
+  JPQL pattern.
+- `PUT /api/product/{id}/out-of-stock` and category insert/update via `CategoryDto`.
+
+**Flow 3 / 4 — Address & cart**
+
+- Shipping-address add/list/get/delete with an `isDefault` flag.
+- Cart add/view/update/remove with the **price snapshotted at add time** and a
+  live line-total/total computed from the snapshot.
+
+**Flow 4 / 5 / 7 / 8 — Checkout, payment, seller & admin**
+
+- `POST /api/order/checkout/{customerId}/{shippingAddressId}?method=…` — a
+  single `@Transactional` method (Steps 1–10): address and cart validation,
+  stock re-check, order number generation, order + order items + payment
+  records, cart clear.
+- Order reads by id and by customer, plus the `order_tracking` timeline.
+- `POST /api/payment/{orderId}/complete`.
+- Seller order-item list through a JPQL join across orders, customers and
+  products, and order-item status updates (`PUT …/status`).
+- Admin analytics: `GROUP BY` order-status counts plus user and seller counts.
+
+**Validation & error handling**
+
+- Jakarta Bean Validation on the request records (`@NotBlank`, …) enforced at
+  the controller boundary with `@Valid`.
+- `GlobalExceptionHandler` (`@ControllerAdvice`) mapping
+  `ResourceNotFoundException`, `MethodArgumentNotValidException` (field →
+  message map), `InvalidCallException`, `InsufficientStockException` and
+  `DuplicateEntryException` to structured HTTP 400 responses
+  (`ErrorDto`: `message`, `comments`, `timestamp`).
+
+**API testing**
+
+- `postman/QuitQ-Ecommerce.postman_collection.json` — Postman v2.1 collection
+  with 4 folders and 49 requests, a `baseUrl` variable, seed credentials in the
+  request descriptions and three error-scenario requests (duplicate signup,
+  empty-field validation, unknown product id).
+
+### Endpoints
+
+| Area | Method summary |
+| :-- | :-- |
+| Auth & users (13) | `POST /api/auth/login`, `POST /api/customer/signup`, `POST /api/seller/signup`, `POST /api/user/add`, read/delete for customer, seller, user |
+| Category & product (15) | Category CRUD, product CRUD, `brand`, `price`, `search`, `category/{id}`, `filter`, `out-of-stock` |
+| Address & cart (8) | Address add/all/get/delete, `POST /api/cart/add/…`, `GET /api/cart/{id}`, `PUT|DELETE /api/cart/item/{id}` |
+| Order, payment, seller, admin (10) | `checkout`, order reads, tracking, seller items, item status, payment complete, three admin analytics |
+
+### Notes
+
+- The `User` entity maps to the existing table through
+  `@Table(name = "users")`, keeping Hibernate from creating an empty `user`
+  shadow table.
+- Stock is double-guarded: the Java re-check inside checkout raises
+  `InsufficientStockException`, and `trg_check_stock_before_order` refuses the
+  order line at the database — a rejected checkout rolls back with no partial
+  order or payment row.
+- No schema change in this release: `ddl-auto=update` only aligns the entity
+  mappings with the v1.0.0 tables.
+
+### Known limitations
+
+- No JWT or role-based authorisation yet — `SecurityAutoConfiguration` is
+  excluded and every endpoint is open; login matches the username only and the
+  password column holds placeholders.
+- No Swagger/OpenAPI document and no automated test suite — both on the roadmap.
+
+### Upgrade notes
+
+`git pull`, then run — no need to re-import the schema:
+
+```bash
+cd quitq_backend
+./mvnw spring-boot:run
+```
+
+---
+
 ## [1.1.0] — 2026-10-06
 
 Category CRUD, the first application layer on top of the schema.
@@ -120,5 +225,6 @@ a database containing data you wish to keep.
 
 ---
 
+[1.2.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.2.0
 [1.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.1.0
 [1.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.0.0
