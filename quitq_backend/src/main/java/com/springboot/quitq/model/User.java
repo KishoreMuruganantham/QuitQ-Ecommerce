@@ -14,24 +14,24 @@ import java.time.Instant;
 @ToString
 @Entity
 @Table(name = "users")
-public class User { //u
+public class User {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50) //This adds constraint NOT NULL
+    @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false, unique = true, length = 100) //This adds constraint NOT NULL
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private Role role; //u.role
+    private Role role;
 
     @CreationTimestamp
     private Instant createdAt;

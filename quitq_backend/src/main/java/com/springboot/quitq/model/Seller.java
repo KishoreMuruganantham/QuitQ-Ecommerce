@@ -12,21 +12,21 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
-public class Seller { //s
+public class Seller {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "users_id", nullable = false, unique = true)
-    private User user; //s.user
+    private User user;
 
-    @Column(nullable = false, length = 100) //This adds constraint NOT NULL
-    private String businessName; //s.business_name
+    @Column(nullable = false, length = 100)
+    private String businessName;
 
-    @Column(nullable = false, length = 20) //This adds constraint NOT NULL
-    private String contactNumber; //s.contact_number
+    @Column(nullable = false, length = 20)
+    private String contactNumber;
 
     @Column(length = 100)
     private String city;

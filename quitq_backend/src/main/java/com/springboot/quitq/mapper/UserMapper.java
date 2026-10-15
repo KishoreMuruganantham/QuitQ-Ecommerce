@@ -10,7 +10,7 @@ public class UserMapper {
         User user = new User();
         user.setUsername(dto.username());
         user.setEmail(dto.email());
-        user.setPassword(dto.password()); // TODO: bcrypt when spring security module starts
+        user.setPassword(dto.password());
         user.setRole(dto.role());
         return user;
     }

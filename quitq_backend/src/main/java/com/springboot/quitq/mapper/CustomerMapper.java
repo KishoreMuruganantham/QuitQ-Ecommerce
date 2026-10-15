@@ -12,7 +12,7 @@ public class CustomerMapper {
         customer.setName(dto.name());
         customer.setGender(dto.gender());
         customer.setContactNumber(dto.contactNumber());
-        customer.setUser(user); //c.user -- the profile always points back to its user
+        customer.setUser(user);
         return customer;
     }
 

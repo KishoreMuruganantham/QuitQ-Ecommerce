@@ -24,7 +24,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleResourceNotFoundException(
             ResourceNotFoundException e
     ){
-        //always reply the object not the string
 
         return ResponseEntity
                 .badRequest()
@@ -54,7 +53,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleInvalidCallException(
             InvalidCallException e
     ){
-        //always reply the object not the string
 
         return ResponseEntity
                 .badRequest()
@@ -69,7 +67,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleInsufficientStockException(
             InsufficientStockException e
     ){
-        //always reply the object not the string
 
         return ResponseEntity
                 .badRequest()
@@ -84,7 +81,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleDuplicateEntryException(
             DuplicateEntryException e
     ){
-        //always reply the object not the string
 
         return ResponseEntity
                 .badRequest()
@@ -95,12 +91,4 @@ public class GlobalExceptionHandler {
                 );
     }
 }
-/*
-Handled exceptions
-------------------
-ResourceNotFoundException     -> invalid id given
-MethodArgumentNotValidException -> field level validation, returns Map
-InvalidCallException           -> malformed / terminated call
-InsufficientStockException     -> cart & checkout flow
-DuplicateEntryException        -> username / email already taken
-*/
+

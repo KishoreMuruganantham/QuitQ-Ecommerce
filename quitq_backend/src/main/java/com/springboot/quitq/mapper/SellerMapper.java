@@ -13,7 +13,7 @@ public class SellerMapper {
         seller.setContactNumber(dto.contactNumber());
         seller.setCity(dto.city());
         seller.setAddress(dto.address());
-        seller.setUser(user); //s.user -- the profile always points back to its user
+        seller.setUser(user);
         return seller;
     }
 

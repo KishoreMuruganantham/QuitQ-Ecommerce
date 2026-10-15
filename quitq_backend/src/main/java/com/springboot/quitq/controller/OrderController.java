@@ -17,53 +17,37 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    @PostMapping("/api/order/checkout/{customerId}/{shippingAddressId}") ///api/order/checkout/1/1?method=UPI
+    @PostMapping("/api/order/checkout/{customerId}/{shippingAddressId}")
     public OrderRespDto checkout(@PathVariable long customerId, @PathVariable long shippingAddressId,
                                  @RequestParam(name = "method", required = false, defaultValue = "COD") PaymentMethod method){
         return orderService.checkout(customerId, shippingAddressId, method);
     }
 
-    @GetMapping("/api/order/{orderId}") ///api/order/1
-    public OrderRespDto getById(@PathVariable long orderId){ //orderId=1
+    @GetMapping("/api/order/{orderId}")
+    public OrderRespDto getById(@PathVariable long orderId){
         return orderService.getById(orderId);
     }
 
-    @GetMapping("/api/order/customer/{customerId}") ///api/order/customer/1
-    public List<OrderRespDto> getByCustomer(@PathVariable long customerId){ //customerId=1
+    @GetMapping("/api/order/customer/{customerId}")
+    public List<OrderRespDto> getByCustomer(@PathVariable long customerId){
         return orderService.getByCustomer(customerId);
     }
 
-    @GetMapping("/api/order/{orderId}/tracking") ///api/order/1/tracking
-    public List<OrderTrackingRespDto> getTracking(@PathVariable long orderId){ //orderId=1
+    @GetMapping("/api/order/{orderId}/tracking")
+    public List<OrderTrackingRespDto> getTracking(@PathVariable long orderId){
         return orderService.getTracking(orderId);
     }
 
-    @GetMapping("/api/order/seller/{sellerId}") ///api/order/seller/1
-    public List<OrderItemInfoDto> getBySeller(@PathVariable long sellerId){ //sellerId=1
+    @GetMapping("/api/order/seller/{sellerId}")
+    public List<OrderItemInfoDto> getBySeller(@PathVariable long sellerId){
         return orderService.getBySeller(sellerId);
     }
 
-    @PutMapping("/api/order/item/{orderItemId}/status") ///api/order/item/1/status?status=SHIPPED
+    @PutMapping("/api/order/item/{orderItemId}/status")
     public OrderItemInfoDto updateItemStatus(@PathVariable long orderItemId,
-                                             @RequestParam(name = "status") OrderStatus status){ //orderItemId=1
+                                             @RequestParam(name = "status") OrderStatus status){
         return orderService.updateItemStatus(orderItemId, status);
     }
 
-    /*
-    POST API : checkout with body
-    OrderDto (customerId, shippingAddressId, paymentMethod)
-    * */
 }
-/*
-    Order status timeline -- Flow 4, 5, 6 & 7
-    ------------------------------------------
-    PLACED -> PROCESSING -> SHIPPED -> DELIVERED   (CANCELLED can be set from any stage)
 
-    order_tracking
-    --------------
-    row 1  : Order placed successfully
-    row 2+ : appended as the order moves
-
-    order_item.status   : seller drives it via PUT /api/order/item/{orderItemId}/status?status=SHIPPED
-    payment_status      : PENDING at checkout -> COMPLETED at POST /api/payment/{orderId}/complete?txnId=ABC123
- */

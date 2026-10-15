@@ -14,30 +14,30 @@ import java.time.Instant;
 @ToString
 @Entity
 @Table(name = "orders")
-public class Orders { //o
+public class Orders {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 64) //This adds constraint NOT NULL
-    private String orderNumber; //o.order_number
+    @Column(nullable = false, unique = true, length = 64)
+    private String orderNumber;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer; //o.customer
+    private Customer customer;
 
     @ManyToOne
     @JoinColumn(name = "shipping_address_id", nullable = false)
-    private ShippingAddress shippingAddress; //o.shipping_address
+    private ShippingAddress shippingAddress;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private Double totalAmount; //o.total_amount
+    @Column(nullable = false)
+    private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private OrderStatus orderStatus; //o.order_status
+    private OrderStatus orderStatus;
 
     @CreationTimestamp
-    private Instant orderDate; //o.order_date
+    private Instant orderDate;
 }

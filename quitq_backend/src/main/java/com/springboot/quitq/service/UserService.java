@@ -20,8 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     public void insert(UserDto userDto) {
-        // Focus on validation -- second
-        // Step 1: check if username and email are already taken
+
         Optional<User> existingUsername = userRepository.findByUsername(userDto.username());
         if(existingUsername.isPresent())
             throw new DuplicateEntryException("Username already taken");
@@ -30,17 +29,14 @@ public class UserService {
         if(existingEmail.isPresent())
             throw new DuplicateEntryException("Email already registered");
 
-        // Focus on functionality --- First
-        // Step 2: convert dto to entity
         User user = UserMapper.convertDtoToEntity(userDto);
 
-        // Step 3: save the record
         userRepository.save(user);
         System.out.println("record inserted...");
     }
 
     public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username); // used by login
+        return userRepository.findByUsername(username);
     }
 
     public UserRespDto getById(long id) {
@@ -60,9 +56,9 @@ public class UserService {
     }
 
     public void deleteById(long id) {
-        // Step 1: Check if id is valid
+
         getById(id);
-        // Step 2: delete the record
+
         userRepository.deleteById(id);
     }
 }

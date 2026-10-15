@@ -11,18 +11,8 @@ import java.util.List;
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
 
-    /*
-    JpaRepository <Interface>
-    save(T) : T
-    findAll() : List<T>
-    findById(id) : Optional<T>
-    delete(T) : void
-    deleteById(id) : void
-    * */
+    List<OrderItem> findByOrdersId(Long orderId);
 
-    List<OrderItem> findByOrdersId(Long orderId); // select oi from OrderItem oi where oi.orders.id=?1
-
-    // SELLER VIEW : flatten order + customer + product into one row per order_item (FQN DTO constructor)
     @Query("""
             select new com.springboot.quitq.dto.response.OrderItemInfoDto(oi.id,o.orderNumber,
             c.name,p.name,oi.quantity,oi.totalPrice,oi.status)

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
-public record ProductDto( //add validation annotations
+public record ProductDto(
         @NotBlank(message = "Name is required")
         String name,
 

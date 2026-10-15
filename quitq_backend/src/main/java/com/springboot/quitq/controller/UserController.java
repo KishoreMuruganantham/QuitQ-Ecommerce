@@ -15,14 +15,13 @@ public class UserController {
 
     private final UserService userService;
 
-    /* Take this from user either thru react app */
     @PostMapping("/api/user/add")
     public void insertUser(@Valid @RequestBody UserDto userDto){
         userService.insert(userDto);
     }
 
-    @GetMapping("/api/user/{id}") ///api/user/1
-    public UserRespDto getById(@PathVariable long id){ //id=1
+    @GetMapping("/api/user/{id}")
+    public UserRespDto getById(@PathVariable long id){
         return userService.getById(id);
     }
 

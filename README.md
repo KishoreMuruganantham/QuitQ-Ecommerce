@@ -90,7 +90,7 @@ Base URL: `http://localhost:8080` — all endpoints are JSON, grouped below exac
 
 | Method | URL | Result |
 | :-- | :-- | :-- |
-| POST | `/api/order/checkout/{customerId}/{shippingAddressId}?method=UPI` | **Checkout** — one `@Transactional` method (Steps 1–10): order + items + payment + stock re-check + cart clear |
+| POST | `/api/order/checkout/{customerId}/{shippingAddressId}?method=UPI` | **Checkout** - one `@Transactional` method: order + items + payment + stock re-check + cart clear |
 | GET | `/api/order/{orderId}` | Order with its items |
 | GET | `/api/order/customer/{customerId}` | Order history for a customer |
 | GET | `/api/order/{orderId}/tracking` | `order_tracking` timeline |
@@ -145,7 +145,7 @@ HTTP  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + J
          @RestController  @Service     derived queries / @Query / group-by
               │               │
               ▼               ▼
-         DTO in (@Valid)   @Transactional checkout (Steps 1–10)
+         DTO in (@Valid)   @Transactional checkout
          DTO out (mapper)  custom exceptions
                                 │
                                 ▼

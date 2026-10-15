@@ -15,7 +15,6 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    /* SIGNUP : react app sends name, gender, contact, username, email, password */
     @PostMapping("/api/customer/signup")
     public CustomerRespDto signupCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.signup(customerDto);
@@ -26,8 +25,8 @@ public class CustomerController {
         return customerService.getAll();
     }
 
-    @GetMapping("/api/customer/{id}") ///api/customer/1
-    public CustomerRespDto getById(@PathVariable long id){ //id=1
+    @GetMapping("/api/customer/{id}")
+    public CustomerRespDto getById(@PathVariable long id){
         return customerService.getById(id);
     }
 

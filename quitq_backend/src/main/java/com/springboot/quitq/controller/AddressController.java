@@ -16,17 +16,17 @@ public class AddressController {
     private final ShippingAddressService shippingAddressService;
 
     @PostMapping("/api/address/add/{customerId}")
-    public ShippingAddressRespDto addAddress(@PathVariable long customerId, @Valid @RequestBody ShippingAddressDto dto){ //customerId=1
+    public ShippingAddressRespDto addAddress(@PathVariable long customerId, @Valid @RequestBody ShippingAddressDto dto){
         return shippingAddressService.add(customerId, dto);
     }
 
-    @GetMapping("/api/address/all/{customerId}") ///api/address/all/1
-    public List<ShippingAddressRespDto> getAllByCustomer(@PathVariable long customerId){ //customerId=1
+    @GetMapping("/api/address/all/{customerId}")
+    public List<ShippingAddressRespDto> getAllByCustomer(@PathVariable long customerId){
         return shippingAddressService.getAllByCustomer(customerId);
     }
 
-    @GetMapping("/api/address/{id}") ///api/address/1
-    public ShippingAddressRespDto getById(@PathVariable long id){ //id=1
+    @GetMapping("/api/address/{id}")
+    public ShippingAddressRespDto getById(@PathVariable long id){
         return shippingAddressService.getById(id);
     }
 

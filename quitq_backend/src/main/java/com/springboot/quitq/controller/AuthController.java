@@ -7,10 +7,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-/*
-LOGIN API : only checks the username exists, nothing more.
-No jwt, no token -- that comes with the spring security module.
-* */
 @RestController
 @RequiredArgsConstructor
 public class AuthController {

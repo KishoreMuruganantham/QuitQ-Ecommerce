@@ -2,11 +2,11 @@ package com.springboot.quitq.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record CustomerDto( //add validation annotations
+public record CustomerDto(
         @NotBlank(message = "Name is required")
         String name,
 
-        String gender, //customer can skip this
+        String gender,
 
         @NotBlank(message = "Contact number is required")
         String contactNumber,

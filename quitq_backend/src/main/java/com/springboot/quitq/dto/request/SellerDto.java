@@ -2,14 +2,14 @@ package com.springboot.quitq.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record SellerDto( //add validation annotations
+public record SellerDto(
         @NotBlank(message = "Business name is required")
         String businessName,
 
         @NotBlank(message = "Contact number is required")
         String contactNumber,
 
-        String city, //seller may add this later
+        String city,
 
         String address,
 

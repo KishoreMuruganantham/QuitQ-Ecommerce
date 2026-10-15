@@ -23,12 +23,12 @@ public class CategoryService {
     }
 
     public Category insert(CategoryDto categoryDto) {
-        // Step 1: convert dto to entity
+
         Category category = new Category();
         category.setName(categoryDto.name());
         category.setDescription(categoryDto.description());
         category.setSeq(categoryDto.seq());
-        // Step 2: save the record
+
         Category saved = categoryRepository.save(category);
         System.out.println("record inserted...");
         return saved;
@@ -49,20 +49,20 @@ public class CategoryService {
     }
 
     public void deleteById(long id) {
-        // Step 1: Check if id is valid
+
         getById(id);
-        // Step 2: delete the record
+
         categoryRepository.deleteById(id);
     }
 
     public Category update(Long id, CategoryDto categoryDto) {
-        // Step 1: Check if id is valid
+
         Category category = getById(id);
-        // Step 2: update the fields from the dto
+
         category.setName(categoryDto.name());
         category.setDescription(categoryDto.description());
         category.setSeq(categoryDto.seq());
-        // Step 3: save the record
+
         return categoryRepository.save(category);
     }
 }

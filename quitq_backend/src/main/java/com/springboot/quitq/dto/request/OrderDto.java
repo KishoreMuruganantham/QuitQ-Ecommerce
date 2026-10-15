@@ -3,7 +3,7 @@ package com.springboot.quitq.dto.request;
 import com.springboot.quitq.enums.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 
-public record OrderDto( //add validation annotations
+public record OrderDto(
         @NotNull(message = "Customer id is required")
         Long customerId,
 

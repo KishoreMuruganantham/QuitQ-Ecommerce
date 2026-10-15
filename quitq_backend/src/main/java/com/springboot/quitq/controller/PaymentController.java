@@ -11,9 +11,9 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @PostMapping("/api/payment/{orderId}/complete") ///api/payment/1/complete?txnId=ABC123
+    @PostMapping("/api/payment/{orderId}/complete")
     public PaymentRespDto completePayment(@PathVariable long orderId,
-                                          @RequestParam(name = "txnId") String txnId){ //orderId=1
+                                          @RequestParam(name = "txnId") String txnId){
         return paymentService.completePayment(orderId, txnId);
     }
 }

@@ -22,30 +22,26 @@ public class ShippingAddressService {
     private final CustomerRepository customerRepository;
 
     public ShippingAddressRespDto add(Long customerId, ShippingAddressDto dto) {
-        // Step 1: validate the customer id
+
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
         if(optionalCustomer.isEmpty())
             throw new ResourceNotFoundException("Invalid customer id");
 
-        // Step 2: convert dto to entity
         ShippingAddress address = ShippingAddressMapper.convertDtoToEntity(dto);
 
-        // Step 3: attach the customer -- sa.customer
         address.setCustomer(optionalCustomer.get());
 
-        // Step 4: save the record
         ShippingAddress saved = shippingAddressRepository.save(address);
         System.out.println("record inserted...");
         return ShippingAddressMapper.convertEntityToDto(saved);
     }
 
     public List<ShippingAddressRespDto> getAllByCustomer(Long customerId) {
-        // Step 1: validate the customer id
+
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
         if(optionalCustomer.isEmpty())
             throw new ResourceNotFoundException("Invalid customer id");
 
-        // Step 2: fetch every address of this customer
         List<ShippingAddress> list = shippingAddressRepository.findByCustomerId(customerId);
         return list
                 .stream()
@@ -62,9 +58,9 @@ public class ShippingAddressService {
     }
 
     public void deleteById(long id) {
-        // Step 1: Check if id is valid
+
         getById(id);
-        // Step 2: delete the record
+
         shippingAddressRepository.deleteById(id);
     }
 }

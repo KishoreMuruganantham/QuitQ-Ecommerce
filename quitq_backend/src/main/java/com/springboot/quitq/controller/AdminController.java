@@ -13,17 +13,17 @@ public class AdminController {
 
     private final AdminService adminService;
 
-    @GetMapping("/api/admin/analytics/orders-by-status") ///api/admin/analytics/orders-by-status
+    @GetMapping("/api/admin/analytics/orders-by-status")
     public List<OrderStatusStatDto> getOrderStatusStat(){
         return adminService.getOrderStatusStat();
     }
 
-    @GetMapping("/api/admin/users/count") ///api/admin/users/count
+    @GetMapping("/api/admin/users/count")
     public long getUserCount(){
         return adminService.getUserCount();
     }
 
-    @GetMapping("/api/admin/sellers/count") ///api/admin/sellers/count
+    @GetMapping("/api/admin/sellers/count")
     public long getSellerCount(){
         return adminService.getSellerCount();
     }

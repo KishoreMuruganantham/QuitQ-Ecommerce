@@ -12,24 +12,24 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
-public class Customer { //c
+public class Customer {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "users_id", nullable = false, unique = true)
-    private User user; //c.user
+    private User user;
 
-    @Column(nullable = false, length = 100) //This adds constraint NOT NULL
+    @Column(nullable = false, length = 100)
     private String name;
 
     @Column(length = 20)
     private String gender;
 
-    @Column(nullable = false, length = 20) //This adds constraint NOT NULL
-    private String contactNumber; //c.contact_number
+    @Column(nullable = false, length = 20)
+    private String contactNumber;
 
     @CreationTimestamp
     private Instant createdAt;

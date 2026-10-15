@@ -13,15 +13,15 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
-public class Cart { //cart
+public class Cart {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "customer_id", nullable = false, unique = true)
-    private Customer customer; //cart.customer
+    private Customer customer;
 
     @CreationTimestamp
     private Instant createdAt;

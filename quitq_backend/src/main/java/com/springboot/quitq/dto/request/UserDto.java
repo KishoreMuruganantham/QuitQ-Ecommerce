@@ -4,7 +4,7 @@ import com.springboot.quitq.enums.Role;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record UserDto( //add validation annotations
+public record UserDto(
         @NotBlank(message = "Username is required")
         String username,
 

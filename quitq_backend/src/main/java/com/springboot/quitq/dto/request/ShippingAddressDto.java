@@ -2,7 +2,7 @@ package com.springboot.quitq.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record ShippingAddressDto( //add validation annotations
+public record ShippingAddressDto(
         @NotBlank(message = "Recipient name is required")
         String recipientName,
 

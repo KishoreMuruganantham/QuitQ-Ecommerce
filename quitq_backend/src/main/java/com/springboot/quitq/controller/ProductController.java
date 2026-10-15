@@ -16,15 +16,14 @@ public class ProductController {
 
     private final ProductService productService;
 
-    /* seller adds his own product : /api/product/add/1 */
     @PostMapping("/api/product/add/{sellerId}")
     public ProductRespDto insertProduct(@Valid @RequestBody ProductDto productDto,
-                                        @PathVariable long sellerId){ //sellerId=1
+                                        @PathVariable long sellerId){
         return productService.insert(productDto, sellerId);
     }
 
-    @GetMapping("/api/product/{id}") ///api/product/1
-    public ProductInfoDto getById(@PathVariable long id){ //id=1
+    @GetMapping("/api/product/{id}")
+    public ProductInfoDto getById(@PathVariable long id){
         return productService.getById(id);
     }
 
@@ -33,28 +32,27 @@ public class ProductController {
         return productService.getAll();
     }
 
-    @GetMapping("/api/product/brand") ///api/product/brand?brand=nike
-    public List<ProductRespDto> getByBrand(@RequestParam(name = "brand") String brand){ //brand=nike
+    @GetMapping("/api/product/brand")
+    public List<ProductRespDto> getByBrand(@RequestParam(name = "brand") String brand){
         return productService.getByBrand(brand);
     }
 
-    @GetMapping("/api/product/price") ///api/product/price?min=100&max=500
+    @GetMapping("/api/product/price")
     public List<ProductRespDto> getByPriceRange(@RequestParam(name = "min") Double min,
-                                                @RequestParam(name = "max") Double max){ //min=100&max=500
+                                                @RequestParam(name = "max") Double max){
         return productService.getByPriceRange(min, max);
     }
 
-    @GetMapping("/api/product/search") ///api/product/search?keyword=shirt
-    public List<ProductRespDto> searchByName(@RequestParam(name = "keyword") String keyword){ //keyword=shirt
+    @GetMapping("/api/product/search")
+    public List<ProductRespDto> searchByName(@RequestParam(name = "keyword") String keyword){
         return productService.searchByName(keyword);
     }
 
-    @GetMapping("/api/product/category/{categoryId}") ///api/product/category/1
-    public List<ProductRespDto> getByCategory(@PathVariable long categoryId){ //categoryId=1
+    @GetMapping("/api/product/category/{categoryId}")
+    public List<ProductRespDto> getByCategory(@PathVariable long categoryId){
         return productService.getByCategory(categoryId);
     }
 
-    /* ALL params are optional : /api/product/filter?brand=nike&categoryId=1&minPrice=100&maxPrice=500 */
     @GetMapping("/api/product/filter")
     public List<ProductRespDto> dynamicFilter(@RequestParam(name = "brand", required = false) String brand,
                                               @RequestParam(name = "categoryId", required = false) Long categoryId,
@@ -63,8 +61,8 @@ public class ProductController {
         return productService.dynamicFilter(brand, categoryId, minPrice, maxPrice);
     }
 
-    @PutMapping("/api/product/{id}/out-of-stock") ///api/product/1/out-of-stock
-    public void updateStatus(@PathVariable long id){ //id=1
+    @PutMapping("/api/product/{id}/out-of-stock")
+    public void updateStatus(@PathVariable long id){
         productService.updateStatus(id);
     }
 
@@ -73,12 +71,4 @@ public class ProductController {
         productService.deleteById(id);
     }
 }
-/*
-    DYNAMIC FILTER IDEA : one query serves every combination of search boxes
-    -----------------------------------------------------------------------
-    /api/product/filter?brand=nike&categoryId=1&minPrice=100&maxPrice=500
-    /api/product/filter?brand=nike
-    /api/product/filter?minPrice=100
-    (?1 IS NULL OR p.brand = ?1) -> if param is not given, condition stays open, all rows pass
-    same idea for ?2 categoryId, ?3 minPrice, ?4 maxPrice
- */
+

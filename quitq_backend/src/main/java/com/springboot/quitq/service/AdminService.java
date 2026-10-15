@@ -18,15 +18,15 @@ public class AdminService {
     private final SellerRepository sellerRepository;
 
     public List<OrderStatusStatDto> getOrderStatusStat() {
-        // group by o.orderStatus done inside the repository
+
         return ordersRepository.getOrdersByStatusStat();
     }
 
     public long getUserCount() {
-        return userRepository.count(); // select count(u.id) from User u
+        return userRepository.count();
     }
 
     public long getSellerCount() {
-        return sellerRepository.count(); // select count(s.id) from Seller s
+        return sellerRepository.count();
     }
 }

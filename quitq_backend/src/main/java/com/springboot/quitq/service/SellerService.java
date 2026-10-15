@@ -24,8 +24,7 @@ public class SellerService {
     private final UserRepository userRepository;
 
     public SellerRespDto signup(SellerDto sellerDto) {
-        // Focus on validation -- second
-        // Step 1: check if username and email are already taken
+
         Optional<User> existingUsername = userRepository.findByUsername(sellerDto.username());
         if(existingUsername.isPresent())
             throw new DuplicateEntryException("Username already taken");
@@ -34,21 +33,16 @@ public class SellerService {
         if(existingEmail.isPresent())
             throw new DuplicateEntryException("Email already registered");
 
-        // Focus on functionality --- First
-        // Step 2: build the User row with seller role
         User user = new User();
         user.setUsername(sellerDto.username());
         user.setEmail(sellerDto.email());
-        user.setPassword(sellerDto.password()); // TODO: bcrypt when spring security module starts
+        user.setPassword(sellerDto.password());
         user.setRole(Role.ROLE_SELLER);
 
-        // Step 3: save the user first, the profile needs the generated id
         userRepository.save(user);
 
-        // Step 4: build the profile entity and attach the user
         Seller seller = SellerMapper.convertDtoToEntity(sellerDto, user);
 
-        // Step 5: save the profile
         Seller saved = sellerRepository.save(seller);
         System.out.println("record inserted...");
         return SellerMapper.convertEntityToDto(saved);
@@ -71,9 +65,9 @@ public class SellerService {
     }
 
     public void deleteById(long id) {
-        // Step 1: Check if id is valid
+
         getById(id);
-        // Step 2: delete the record
+
         sellerRepository.deleteById(id);
     }
 }

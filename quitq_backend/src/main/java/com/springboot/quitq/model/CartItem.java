@@ -9,23 +9,23 @@ import lombok.*;
 @Setter
 @ToString
 @Entity
-public class CartItem { //ci
+public class CartItem {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
-    private Cart cart; //ci.cart
+    private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private Product product; //ci.product
+    private Product product;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private Integer quantity; //ci.quantity
+    @Column(nullable = false)
+    private Integer quantity;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private Double price; //ci.price -- snapshot price
+    @Column(nullable = false)
+    private Double price;
 }

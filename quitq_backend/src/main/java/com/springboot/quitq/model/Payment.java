@@ -14,30 +14,30 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
-public class Payment { //pay
+public class Payment {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false, unique = true)
-    private Orders orders; //pay.orders
+    private Orders orders;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private PaymentMethod paymentMethod; //pay.payment_method
+    private PaymentMethod paymentMethod;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private PaymentStatus paymentStatus; //pay.payment_status
+    private PaymentStatus paymentStatus;
 
     @Column(length = 100)
-    private String transactionId; //pay.transaction_id
+    private String transactionId;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private Double amount; //pay.amount
+    @Column(nullable = false)
+    private Double amount;
 
     @CreationTimestamp
-    private Instant paymentDate; //pay.payment_date
+    private Instant paymentDate;
 }

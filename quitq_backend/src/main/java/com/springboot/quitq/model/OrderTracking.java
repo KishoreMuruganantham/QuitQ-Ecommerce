@@ -12,21 +12,21 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
-public class OrderTracking { //ot
+public class OrderTracking {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Orders orders; //ot.orders
+    private Orders orders;
 
-    @Column(nullable = false, length = 50) //This adds constraint NOT NULL
-    private String status; //ot.status
+    @Column(nullable = false, length = 50)
+    private String status;
 
     @CreationTimestamp
-    private Instant statusTime; //ot.status_time
+    private Instant statusTime;
 
     @Column(length = 255)
     private String remarks;

@@ -13,21 +13,21 @@ import java.time.Instant;
 @Setter
 @ToString
 @Entity
-public class Product { //p
+public class Product {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
-    private Category category; //p.category
+    private Category category;
 
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
-    private Seller seller; //p.seller
+    private Seller seller;
 
-    @Column(nullable = false, length = 255) //This adds constraint NOT NULL
+    @Column(nullable = false, length = 255)
     private String name;
 
     @Column(length = 100)
@@ -36,18 +36,18 @@ public class Product { //p
     @Column(columnDefinition = "MEDIUMTEXT")
     private String description;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private Double price; //p.price
+    @Column(nullable = false)
+    private Double price;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private Integer stockQty; //p.stock_qty
+    @Column(nullable = false)
+    private Integer stockQty;
 
     @Column(length = 255)
-    private String imageUrl; //p.image_url
+    private String imageUrl;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private ProductStatus status; //p.status
+    private ProductStatus status;
 
     @CreationTimestamp
     private Instant createdAt;

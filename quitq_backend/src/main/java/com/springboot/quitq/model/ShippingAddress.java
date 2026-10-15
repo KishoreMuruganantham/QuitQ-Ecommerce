@@ -9,34 +9,34 @@ import lombok.*;
 @Setter
 @ToString
 @Entity
-public class ShippingAddress { //sa
+public class ShippingAddress {
 
-    @Id // This makes id a Primary key
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // This makes id auto_increment
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
-    private Customer customer; //sa.customer
+    private Customer customer;
 
-    @Column(nullable = false, length = 100) //This adds constraint NOT NULL
-    private String recipientName; //sa.recipient_name
+    @Column(nullable = false, length = 100)
+    private String recipientName;
 
-    @Column(nullable = false, length = 20) //This adds constraint NOT NULL
+    @Column(nullable = false, length = 20)
     private String phone;
 
-    @Column(nullable = false, length = 255) //This adds constraint NOT NULL
-    private String streetAddress; //sa.street_address
+    @Column(nullable = false, length = 255)
+    private String streetAddress;
 
-    @Column(nullable = false, length = 100) //This adds constraint NOT NULL
+    @Column(nullable = false, length = 100)
     private String city;
 
-    @Column(nullable = false, length = 100) //This adds constraint NOT NULL
+    @Column(nullable = false, length = 100)
     private String state;
 
-    @Column(nullable = false, length = 20) //This adds constraint NOT NULL
-    private String postalCode; //sa.postal_code
+    @Column(nullable = false, length = 20)
+    private String postalCode;
 
-    @Column(nullable = false) //This adds constraint NOT NULL
-    private boolean isDefault; //sa.is_default
+    @Column(nullable = false)
+    private boolean isDefault;
 }

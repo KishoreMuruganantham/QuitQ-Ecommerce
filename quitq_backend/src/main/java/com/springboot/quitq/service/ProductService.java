@@ -27,17 +27,17 @@ public class ProductService {
     private final SellerRepository sellerRepository;
 
     public ProductRespDto insert(ProductDto productDto, long sellerId) {
-        // Step 1: validate the category id : p.category
+
         Category category = getCategory(productDto.categoryId());
-        // Step 2: validate the seller id : p.seller
+
         Seller seller = getSeller(sellerId);
-        // Step 3: convert dto to entity
+
         Product product = ProductMapper.convertDtoToEntity(productDto);
-        // Step 4: attach the category and the seller, product always starts as IN_STOCK
+
         product.setCategory(category);
         product.setSeller(seller);
         product.setStatus(ProductStatus.IN_STOCK);
-        // Step 5: save the record
+
         Product saved = productRepository.save(product);
         System.out.println("record inserted...");
         return ProductMapper.convertEntityToDto(saved);
@@ -96,22 +96,21 @@ public class ProductService {
     }
 
     public void updateStatus(long id) {
-        // Step 1: fetch the product
+
         Optional<Product> optional = productRepository.findById(id);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid product id");
 
-        // Step 2: mark the product OUT_OF_STOCK
         Product product = optional.get();
         product.setStatus(ProductStatus.OUT_OF_STOCK);
-        // Step 3: save the record
+
         productRepository.save(product);
     }
 
     public void deleteById(long id) {
-        // Step 1: Check if id is valid
+
         getById(id);
-        // Step 2: delete the record
+
         productRepository.deleteById(id);
     }
 

@@ -46,7 +46,7 @@ v1.0.0 schema, with validation, JPQL and centralised exception handling.
 **Flow 4 / 5 / 7 / 8 — Checkout, payment, seller & admin**
 
 - `POST /api/order/checkout/{customerId}/{shippingAddressId}?method=…` — a
-  single `@Transactional` method (Steps 1–10): address and cart validation,
+  single `@Transactional` method: address and cart validation,
   stock re-check, order number generation, order + order items + payment
   records, cart clear.
 - Order reads by id and by customer, plus the `order_tracking` timeline.

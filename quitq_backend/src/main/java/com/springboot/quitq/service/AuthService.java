@@ -17,13 +17,11 @@ public class AuthService {
     private final UserService userService;
 
     public UserRespDto login(LoginDto loginDto) {
-        // Step 1: look up the user by username only
-        // TODO: compare the password too once bcrypt + spring security module starts
+
         Optional<User> optional = userService.findByUsername(loginDto.username());
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid credentials");
 
-        // Step 2: no jwt, no token -- just reply with the logged in profile
         return UserMapper.convertEntityToDto(optional.get());
     }
 }

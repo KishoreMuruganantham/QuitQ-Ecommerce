@@ -15,7 +15,6 @@ public class CategoryController {
 
     private final CategoryService categoryService;
 
-    /* Take this from user either thru react app */
     @PostMapping("/api/category/add")
     public Category insertCategory(@Valid @RequestBody CategoryDto categoryDto){
         return categoryService.insert(categoryDto);
@@ -26,8 +25,8 @@ public class CategoryController {
         return categoryService.getAll();
     }
 
-    @GetMapping("/api/category/{id}") ///api/category/1
-    public Category getById(@PathVariable long id){ //id=1
+    @GetMapping("/api/category/{id}")
+    public Category getById(@PathVariable long id){
         return categoryService.getById(id);
     }
 
@@ -36,8 +35,8 @@ public class CategoryController {
         categoryService.deleteById(id);
     }
 
-    @PutMapping("/api/category/{id}") ///api/category/1
-    public Category updateCategory(@PathVariable long id, //id=1
+    @PutMapping("/api/category/{id}")
+    public Category updateCategory(@PathVariable long id,
                                    @Valid @RequestBody CategoryDto categoryDto){
         return categoryService.update(id, categoryDto);
     }
