@@ -9,6 +9,7 @@ import com.springboot.quitq.enums.PaymentStatus;
 import com.springboot.quitq.enums.ProductStatus;
 import com.springboot.quitq.exception.InsufficientStockException;
 import com.springboot.quitq.exception.InvalidCallException;
+import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.mapper.OrderMapper;
 import com.springboot.quitq.model.Cart;
@@ -57,12 +58,13 @@ public class OrderService {
     private final CartService cartService;
 
     @Transactional
-    public OrderRespDto checkout(Long customerId, Long shippingAddressId, PaymentMethod method) {
+    public OrderRespDto checkout(Long customerId, Long shippingAddressId, PaymentMethod method, String username) {
 
-        Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
-        if(optionalCustomer.isEmpty())
-            throw new ResourceNotFoundException("Customer id Invalid");
-        Customer customer = optionalCustomer.get();
+        Customer customer = customerRepository.getByUsername(username);
+        if(customer == null)
+            throw new ResourceNotFoundException("Customer not found for the logged in user");
+        if(!customer.getId().equals(customerId))
+            throw new OwnershipException("Customer id does not belong to the logged in user");
 
         Optional<ShippingAddress> optionalAddress = shippingAddressRepository.findById(shippingAddressId);
         if(optionalAddress.isEmpty())
@@ -130,22 +132,29 @@ public class OrderService {
         return OrderMapper.convertEntityToDto(savedOrder);
     }
 
-    public OrderRespDto getById(long orderId) {
+    public OrderRespDto getById(long orderId, String username) {
 
         Optional<Orders> optional = ordersRepository.findById(orderId);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid order id");
 
-        return OrderMapper.convertEntityToDto(optional.get());
+        Orders orders = optional.get();
+        String owner = orders.getCustomer().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Order does not belong to the logged in user");
+
+        return OrderMapper.convertEntityToDto(orders);
     }
 
-    public List<OrderRespDto> getByCustomer(long customerId, int page, int size) {
+    public List<OrderRespDto> getByCustomer(long customerId, int page, int size, String username) {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
-        if(optionalCustomer.isEmpty())
-            throw new ResourceNotFoundException("Customer id Invalid");
+        Customer customer = customerRepository.getByUsername(username);
+        if(customer == null)
+            throw new ResourceNotFoundException("Customer not found for the logged in user");
+        if(!customer.getId().equals(customerId))
+            throw new OwnershipException("Customer id does not belong to the logged in user");
 
         List<Orders> list = ordersRepository.findByCustomerId(customerId, pageable);
         return list
@@ -154,11 +163,16 @@ public class OrderService {
                 .toList();
     }
 
-    public List<OrderTrackingRespDto> getTracking(long orderId) {
+    public List<OrderTrackingRespDto> getTracking(long orderId, String username) {
 
         Optional<Orders> optional = ordersRepository.findById(orderId);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid order id");
+
+        Orders orders = optional.get();
+        String owner = orders.getCustomer().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Order does not belong to the logged in user");
 
         List<OrderTracking> list = orderTrackingRepository.findByOrdersIdOrderByStatusTimeAsc(orderId);
         return list
@@ -167,24 +181,30 @@ public class OrderService {
                 .toList();
     }
 
-    public List<OrderItemInfoDto> getBySeller(long sellerId, int page, int size) {
+    public List<OrderItemInfoDto> getBySeller(long sellerId, int page, int size, String username) {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        Optional<Seller> optionalSeller = sellerRepository.findById(sellerId);
-        if(optionalSeller.isEmpty())
-            throw new ResourceNotFoundException("Invalid seller id");
+        Seller seller = sellerRepository.getByUsername(username);
+        if(seller == null)
+            throw new ResourceNotFoundException("Seller not found for the logged in user");
+        if(!seller.getId().equals(sellerId))
+            throw new OwnershipException("Seller id does not belong to the logged in user");
 
         return orderItemRepository.getOrdersBySellerId(sellerId, pageable);
     }
 
-    public OrderItemInfoDto updateItemStatus(long orderItemId, OrderStatus status) {
+    public OrderItemInfoDto updateItemStatus(long orderItemId, OrderStatus status, String username) {
 
         Optional<OrderItem> optional = orderItemRepository.findById(orderItemId);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid order item id");
 
         OrderItem orderItem = optional.get();
+        String owner = orderItem.getSeller().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Order item does not belong to the logged in user");
+
         orderItem.setStatus(status);
 
         OrderItem saved = orderItemRepository.save(orderItem);

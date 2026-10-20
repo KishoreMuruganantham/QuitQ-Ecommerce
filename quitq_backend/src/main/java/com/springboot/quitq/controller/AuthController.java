@@ -1,20 +1,26 @@
 package com.springboot.quitq.controller;
 
-import com.springboot.quitq.dto.request.LoginDto;
-import com.springboot.quitq.dto.response.UserRespDto;
-import com.springboot.quitq.service.AuthService;
-import jakarta.validation.Valid;
+import com.springboot.quitq.dto.response.TokenDto;
+import com.springboot.quitq.utility.JwtUtility;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
+import java.time.LocalDateTime;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final JwtUtility jwtUtility;
 
-    @PostMapping("/api/auth/login")
-    public UserRespDto login(@Valid @RequestBody LoginDto loginDto){
-        return authService.login(loginDto);
+    @GetMapping("/api/auth/login")
+    public TokenDto login(Principal principal){
+        String loggedInUsername = principal.getName();
+        String token = jwtUtility.generateToken(loggedInUsername);
+        return new TokenDto(token,
+                jwtUtility.extractExpiration(token),
+                LocalDateTime.now().toString());
     }
 }

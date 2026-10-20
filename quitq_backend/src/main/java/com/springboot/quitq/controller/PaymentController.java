@@ -5,6 +5,8 @@ import com.springboot.quitq.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequiredArgsConstructor
 public class PaymentController {
@@ -13,7 +15,8 @@ public class PaymentController {
 
     @PostMapping("/api/payment/{orderId}/complete")
     public PaymentRespDto completePayment(@PathVariable long orderId,
-                                          @RequestParam(name = "txnId") String txnId){
-        return paymentService.completePayment(orderId, txnId);
+                                          @RequestParam(name = "txnId") String txnId,
+                                          Principal principal){
+        return paymentService.completePayment(orderId, txnId, principal.getName());
     }
 }

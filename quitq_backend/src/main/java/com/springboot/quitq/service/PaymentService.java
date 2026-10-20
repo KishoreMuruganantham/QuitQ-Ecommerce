@@ -2,6 +2,7 @@ package com.springboot.quitq.service;
 
 import com.springboot.quitq.dto.response.PaymentRespDto;
 import com.springboot.quitq.enums.PaymentStatus;
+import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.mapper.OrderMapper;
 import com.springboot.quitq.model.Orders;
@@ -20,10 +21,14 @@ public class PaymentService {
     private final OrdersRepository ordersRepository;
     private final PaymentRepository paymentRepository;
 
-    public PaymentRespDto completePayment(long orderId, String transactionId) {
+    public PaymentRespDto completePayment(long orderId, String transactionId, String username) {
 
         Orders orders = ordersRepository.findById(orderId)
                 .orElseThrow(()-> new ResourceNotFoundException("Invalid order id"));
+
+        String owner = orders.getCustomer().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Order does not belong to the logged in user");
 
         Payment payment = paymentRepository.findByOrdersId(orderId)
                 .orElseThrow(()-> new ResourceNotFoundException("Payment not found for this order"));

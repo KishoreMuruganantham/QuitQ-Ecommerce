@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,8 +19,9 @@ public class ProductController {
 
     @PostMapping("/api/product/add/{sellerId}")
     public ProductRespDto insertProduct(@Valid @RequestBody ProductDto productDto,
-                                        @PathVariable long sellerId){
-        return productService.insert(productDto, sellerId);
+                                        @PathVariable long sellerId,
+                                        Principal principal){
+        return productService.insert(productDto, sellerId, principal.getName());
     }
 
     @GetMapping("/api/product/{id}")
@@ -79,13 +81,13 @@ public class ProductController {
     }
 
     @PutMapping("/api/product/{id}/out-of-stock")
-    public void updateStatus(@PathVariable long id){
-        productService.updateStatus(id);
+    public void updateStatus(@PathVariable long id, Principal principal){
+        productService.updateStatus(id, principal.getName());
     }
 
     @DeleteMapping("/api/product/{id}")
-    public void deleteById(@PathVariable long id){
-        productService.deleteById(id);
+    public void deleteById(@PathVariable long id, Principal principal){
+        productService.deleteById(id, principal.getName());
     }
 }
 

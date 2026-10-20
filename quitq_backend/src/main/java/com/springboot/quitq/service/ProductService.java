@@ -4,6 +4,7 @@ import com.springboot.quitq.dto.request.ProductDto;
 import com.springboot.quitq.dto.response.ProductInfoDto;
 import com.springboot.quitq.dto.response.ProductRespDto;
 import com.springboot.quitq.enums.ProductStatus;
+import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.mapper.ProductMapper;
 import com.springboot.quitq.model.Category;
@@ -28,11 +29,15 @@ public class ProductService {
     private final CategoryRepository categoryRepository;
     private final SellerRepository sellerRepository;
 
-    public ProductRespDto insert(ProductDto productDto, long sellerId) {
+    public ProductRespDto insert(ProductDto productDto, long sellerId, String username) {
 
         Category category = getCategory(productDto.categoryId());
 
-        Seller seller = getSeller(sellerId);
+        Seller seller = sellerRepository.getByUsername(username);
+        if(seller == null)
+            throw new ResourceNotFoundException("Seller not found for the logged in user");
+        if(!seller.getId().equals(sellerId))
+            throw new OwnershipException("Seller id does not belong to the logged in user");
 
         Product product = ProductMapper.convertDtoToEntity(productDto);
 
@@ -112,21 +117,32 @@ public class ProductService {
                 .toList();
     }
 
-    public void updateStatus(long id) {
+    public void updateStatus(long id, String username) {
 
         Optional<Product> optional = productRepository.findById(id);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid product id");
 
         Product product = optional.get();
+        String owner = product.getSeller().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Product does not belong to the logged in user");
+
         product.setStatus(ProductStatus.OUT_OF_STOCK);
 
         productRepository.save(product);
     }
 
-    public void deleteById(long id) {
+    public void deleteById(long id, String username) {
 
-        getById(id);
+        Optional<Product> optional = productRepository.findById(id);
+        if(optional.isEmpty())
+            throw new ResourceNotFoundException("Invalid product id");
+
+        Product product = optional.get();
+        String owner = product.getSeller().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Product does not belong to the logged in user");
 
         productRepository.deleteById(id);
     }
@@ -138,14 +154,6 @@ public class ProductService {
         Optional<Category> optional = categoryRepository.findById(categoryId);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid category id");
-
-        return optional.get();
-    }
-
-    private Seller getSeller(long sellerId) {
-        Optional<Seller> optional = sellerRepository.findById(sellerId);
-        if(optional.isEmpty())
-            throw new ResourceNotFoundException("Invalid seller id");
 
         return optional.get();
     }

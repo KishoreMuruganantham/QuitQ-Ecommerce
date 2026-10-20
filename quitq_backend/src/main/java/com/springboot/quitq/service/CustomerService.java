@@ -13,6 +13,7 @@ import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public CustomerRespDto signup(CustomerDto customerDto) {
 
@@ -40,6 +42,8 @@ public class CustomerService {
         user.setEmail(customerDto.email());
         user.setPassword(customerDto.password());
         user.setRole(Role.ROLE_CUSTOMER);
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userRepository.save(user);
 

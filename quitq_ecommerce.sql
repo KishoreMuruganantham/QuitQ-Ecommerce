@@ -30,6 +30,7 @@ CREATE TABLE users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(30) NOT NULL COMMENT 'ROLE_CUSTOMER, ROLE_SELLER, ROLE_ADMIN',
+    is_active BIT(1) NOT NULL DEFAULT b'1',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -270,10 +271,10 @@ DELIMITER ;
 
 -- 1. Users
 INSERT INTO users (id, username, email, password, role) VALUES
-(1, 'admin', 'admin@quitq.com', '$2a$10$eO...hash...admin', 'ROLE_ADMIN'),
-(2, 'techstore', 'seller1@quitq.com', '$2a$10$eO...hash...seller1', 'ROLE_SELLER'),
-(3, 'fashionhub', 'seller2@quitq.com', '$2a$10$eO...hash...seller2', 'ROLE_SELLER'),
-(4, 'john_doe', 'john@example.com', '$2a$10$eO...hash...john', 'ROLE_CUSTOMER');
+(1, 'admin', 'admin@quitq.com', '$2a$10$SS0PwJbooKCmTecFCWE0.ucG3KjR5m3rstUgT5OQ3zqEH7HxoVYd.', 'ROLE_ADMIN'),
+(2, 'techstore', 'seller1@quitq.com', '$2a$10$LIY8Yjkr1W8Q.o7Dyfpu3ea9enS9cI7NJJLzirgyjltbFzFtSs.vu', 'ROLE_SELLER'),
+(3, 'fashionhub', 'seller2@quitq.com', '$2a$10$W0Vnr2tJPbSdrWy/GwNj/.KKG.tiJCXyjfwy/WbkQ8M3jSCFVMTCu', 'ROLE_SELLER'),
+(4, 'john_doe', 'john@example.com', '$2a$10$tKepZPeKGwdCX5iBmXAdHOQ7jRNjroh486ehi/m6P71ykUhBJuS1e', 'ROLE_CUSTOMER');
 
 -- 2. Customer Profile
 INSERT INTO customer (id, users_id, name, gender, contact_number) VALUES

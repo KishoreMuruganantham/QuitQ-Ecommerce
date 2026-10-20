@@ -4,6 +4,7 @@ import com.springboot.quitq.dto.response.CartInfoDto;
 import com.springboot.quitq.dto.response.CartItemInfoDto;
 import com.springboot.quitq.enums.ProductStatus;
 import com.springboot.quitq.exception.InsufficientStockException;
+import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.mapper.CartMapper;
 import com.springboot.quitq.model.Cart;
@@ -29,7 +30,13 @@ public class CartService {
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
 
-    public CartItemInfoDto addItem(Long customerId, Long productId, Integer quantity) {
+    public CartItemInfoDto addItem(Long customerId, Long productId, Integer quantity, String username) {
+
+        Customer customer = customerRepository.getByUsername(username);
+        if(customer == null)
+            throw new ResourceNotFoundException("Customer not found for the logged in user");
+        if(!customer.getId().equals(customerId))
+            throw new OwnershipException("Customer id does not belong to the logged in user");
 
         Optional<Cart> optionalCart = cartRepository.findByCustomerId(customerId);
         Cart cart;
@@ -37,12 +44,8 @@ public class CartService {
             cart = optionalCart.get();
         else {
 
-            Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
-            if(optionalCustomer.isEmpty())
-                throw new ResourceNotFoundException("Invalid customer id");
-
             cart = new Cart();
-            cart.setCustomer(optionalCustomer.get());
+            cart.setCustomer(customer);
             cart = cartRepository.save(cart);
         }
 
@@ -79,7 +82,13 @@ public class CartService {
         return CartMapper.convertCartItemToInfoDto(saved);
     }
 
-    public CartInfoDto viewCart(Long customerId) {
+    public CartInfoDto viewCart(Long customerId, String username) {
+
+        Customer customer = customerRepository.getByUsername(username);
+        if(customer == null)
+            throw new ResourceNotFoundException("Customer not found for the logged in user");
+        if(!customer.getId().equals(customerId))
+            throw new OwnershipException("Customer id does not belong to the logged in user");
 
         Optional<Cart> optional = cartRepository.findByCustomerId(customerId);
         if(optional.isEmpty())
@@ -89,23 +98,32 @@ public class CartService {
         return CartMapper.convertEntityToDto(optional.get(), list);
     }
 
-    public CartItemInfoDto updateQuantity(Long cartItemId, Integer quantity) {
+    public CartItemInfoDto updateQuantity(Long cartItemId, Integer quantity, String username) {
 
         Optional<CartItem> optional = cartItemRepository.findById(cartItemId);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid cart item id");
 
         CartItem item = optional.get();
+        String owner = item.getCart().getCustomer().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Cart item does not belong to the logged in user");
+
         item.setQuantity(quantity);
         CartItem saved = cartItemRepository.save(item);
         return CartMapper.convertCartItemToInfoDto(saved);
     }
 
-    public void removeItem(Long cartItemId) {
+    public void removeItem(Long cartItemId, String username) {
 
         Optional<CartItem> optional = cartItemRepository.findById(cartItemId);
         if(optional.isEmpty())
             throw new ResourceNotFoundException("Invalid cart item id");
+
+        CartItem item = optional.get();
+        String owner = item.getCart().getCustomer().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Cart item does not belong to the logged in user");
 
         cartItemRepository.deleteById(cartItemId);
     }

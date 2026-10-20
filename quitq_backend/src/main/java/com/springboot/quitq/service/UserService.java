@@ -10,6 +10,7 @@ import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public void insert(UserDto userDto) {
 
@@ -32,6 +34,8 @@ public class UserService {
             throw new DuplicateEntryException("Email already registered");
 
         User user = UserMapper.convertDtoToEntity(userDto);
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userRepository.save(user);
         System.out.println("record inserted...");

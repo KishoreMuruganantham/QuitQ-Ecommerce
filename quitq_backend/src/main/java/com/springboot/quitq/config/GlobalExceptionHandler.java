@@ -4,6 +4,7 @@ import com.springboot.quitq.dto.response.ErrorDto;
 import com.springboot.quitq.exception.DuplicateEntryException;
 import com.springboot.quitq.exception.InsufficientStockException;
 import com.springboot.quitq.exception.InvalidCallException;
+import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -87,6 +88,20 @@ public class GlobalExceptionHandler {
                 .body(
                         new ErrorDto(e.getMessage(),
                                 "Record already exists in DB",
+                                Instant.now())
+                );
+    }
+
+    @ExceptionHandler(OwnershipException.class)
+    public ResponseEntity<ErrorDto> handleOwnershipException(
+            OwnershipException e
+    ){
+
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        new ErrorDto(e.getMessage(),
+                                "Logged-in User cannot perform this operation",
                                 Instant.now())
                 );
     }
