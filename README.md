@@ -178,8 +178,9 @@ HTTP  ─▶  Spring Security (JwtFilter + 38 role rules)  ─▶  Controller  �
 | Enums | 5 | `Role`, `ProductStatus`, `OrderStatus`, `PaymentMethod`, `PaymentStatus` |
 | Exceptions | 4 + handler | Custom exceptions (incl. `OwnershipException`) + `GlobalExceptionHandler` |
 | Security | 38 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks |
+| Tests | 14 | Mockito unit tests across five service classes (`@ExtendWith(MockitoExtension.class)`) |
 
-> Spring Security is on the classpath, but `SecurityAutoConfiguration` is excluded so the prototype starts without authentication — JWT and role-based authorisation are the next module.
+> Catalogue reads are open to every caller (`permitAll`); write endpoints need a JWT with the matching role, and every customer/seller operation is additionally checked against the token's owner.
 
 ---
 
@@ -475,7 +476,7 @@ QuitQ-Ecommerce/
 - [ ] React front-end with the three dashboards
 - [ ] Order status state machine with optimistic concurrency control
 - [ ] Payment gateway integration and webhook handling
-- [ ] Unit and integration test suite covering all eight flows
+- [x] Unit tests with Mockito — 14 tests across five service classes
 - [ ] CI pipeline with schema migration validation
 
 ---

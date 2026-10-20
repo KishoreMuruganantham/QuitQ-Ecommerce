@@ -6,6 +6,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] — 2026-10-20
+
+The API is now secured: JWT login with BCrypt passwords, role-based route
+matching and per-owner data checks — plus optional pagination across every
+list endpoint and the first Mockito unit-test suite.
+
+### Added
+
+**Pagination**
+
+- Optional `page` / `size` query parameters on all twelve list endpoints
+  (`page` defaults to `0`, `size` to `20`), mapped with `PageRequest.of` and
+  repository methods that take a trailing `Pageable` and return `List`.
+
+**Catalogue**
+
+- `GET /api/product/unpurchased` — LEFT JOIN JPQL
+  (`left join p.orderItems oi where oi is null`) listing products that have
+  never been ordered, backed by a new `orderItems` collection on `Product`.
+
+**Security (`config` / `utility` packages)**
+
+- `SecurityConfig` — `SecurityFilterChain` with 38 matchers: catalogue reads
+  are `permitAll`, mutating endpoints require
+  `hasAuthority("ROLE_CUSTOMER" | "ROLE_SELLER" | "ROLE_ADMIN")`, CSRF
+  disabled, HTTP Basic on.
+- `JwtUtility` — HS256 token generation and extraction with a Base64-encoded
+  signing key and a 24-hour expiry.
+- `JwtFilter` — `OncePerRequestFilter` registered with
+  `addFilterBefore(..., UsernamePasswordAuthenticationFilter.class)`; a valid
+  `Authorization: Bearer` token populates the `SecurityContext`, so
+  controllers resolve the caller from `Principal`.
+- `MyUserDetailsService` — loads the account by username and honours the new
+  `users.is_active` flag (`User` now implements `UserDetails`).
+- BCrypt hashing at every password write — customer signup, seller signup and
+  `POST /api/user/add`; seeded accounts carry real BCrypt hashes.
+- `OwnershipException` (HTTP 400) raised when a customer or seller acts on
+  another user's cart, order, payment or product — checked in the checkout,
+  order, payment, cart and product services.
+
+**Unit tests**
+
+- 14 Mockito tests across five service classes (`ProductServiceTest`,
+  `CustomerServiceTest`, `OrderServiceTest`, `PaymentServiceTest`,
+  `CartServiceTest`) using `@ExtendWith(MockitoExtension.class)`,
+  `@InjectMocks` / `@Mock` and `when` / `verify` — happy paths, duplicate
+  signup, insufficient stock, missing entities, BCrypt encoding and
+  ownership violations.
+
+**API testing**
+
+- Collection grown to 52 requests: three login requests (admin, seller,
+  customer) exchange HTTP Basic credentials for tokens into collection
+  variables that the 33 protected requests send as
+  `Authorization: Bearer {{...}}`.
+
+### Changed
+
+- **Breaking** — `POST /api/auth/login` (JSON `LoginDto`) is replaced by
+  `GET /api/auth/login` with HTTP Basic credentials, returning `TokenDto`
+  (`token`, `expiryTime`, `issueTime`). `AuthService` and `LoginDto` are
+  removed; signup still creates the `users` row first, now BCrypt-encoded.
+
+### Known limitations
+
+- A malformed Bearer token is not caught in `JwtFilter` and surfaces as a
+  HTTP 500; token-format hardening is planned.
+- `product.price` and monetary columns still use `DOUBLE`.
+- API documentation, versioning, structured logging and the React front-end
+  remain on the roadmap.
+
+### Upgrade notes
+
+Fresh installs from `quitq_ecommerce.sql` need nothing extra. On an existing
+database, seeded rows need the `is_active` column set to enabled (rows
+created before the column existed default to disabled, which blocks login)
+and placeholder passwords replaced with the BCrypt hashes from the seed
+script — `UPDATE users SET is_active = b'1';`.
+
+---
+
 ## [1.2.0] — 2026-10-11
 
 The complete REST API layer: all eight business flows implemented on top of the
@@ -225,6 +306,7 @@ a database containing data you wish to keep.
 
 ---
 
+[2.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.0.0
 [1.2.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.2.0
 [1.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.1.0
 [1.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.0.0
