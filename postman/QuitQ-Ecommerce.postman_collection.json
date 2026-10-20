@@ -13,12 +13,21 @@
           "name": "Login - customer john_doe",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/auth/login",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"john@123\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -28,12 +37,21 @@
           "name": "Signup customer",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/customer/signup",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Alice Verma\",\n  \"gender\": \"Female\",\n  \"contactNumber\": \"9876543211\",\n  \"username\": \"alice_verma\",\n  \"email\": \"alice@example.com\",\n  \"password\": \"alice@123\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -43,12 +61,21 @@
           "name": "Signup customer - ERROR duplicate username",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/customer/signup",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"John Doe\",\n  \"gender\": \"Male\",\n  \"contactNumber\": \"9876543210\",\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"john@123\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -58,12 +85,21 @@
           "name": "Signup customer - ERROR empty required fields",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/customer/signup",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"\",\n  \"gender\": \"\",\n  \"contactNumber\": \"\",\n  \"username\": \"\",\n  \"email\": \"\",\n  \"password\": \"\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -73,10 +109,10 @@
           "name": "Get all customers",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/customer/all"
+            "url": "{{baseUrl}}/api/customer/all?page=0&size=20"
           },
           "response": [],
-          "description": "Returns every registered customer with ids, usernames and contact details."
+          "description": "Returns every registered customer with ids, usernames and contact details. Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get customer by id",
@@ -100,12 +136,21 @@
           "name": "Signup seller",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/seller/signup",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"businessName\": \"Gadget World\",\n  \"contactNumber\": \"9845098450\",\n  \"city\": \"Bengaluru\",\n  \"address\": \"44 Residency Road\",\n  \"username\": \"gadget_world\",\n  \"email\": \"gadgetworld@example.com\",\n  \"password\": \"gadget@123\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -115,10 +160,10 @@
           "name": "Get all sellers",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/seller/all"
+            "url": "{{baseUrl}}/api/seller/all?page=0&size=20"
           },
           "response": [],
-          "description": "Returns every seller (seeded: 1 techstore, 2 fashionhub)."
+          "description": "Returns every seller (seeded: 1 techstore, 2 fashionhub). Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get seller by id",
@@ -142,12 +187,21 @@
           "name": "Add user",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/user/add",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"username\": \"demo_user\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"demo@123\",\n  \"role\": \"ROLE_CUSTOMER\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -157,10 +211,10 @@
           "name": "Get all users",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/user/all"
+            "url": "{{baseUrl}}/api/user/all?page=0&size=20"
           },
           "response": [],
-          "description": "Returns every login user with its role."
+          "description": "Returns every login user with its role. Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get user by id",
@@ -190,12 +244,21 @@
           "name": "Add category",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/category/add",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Books\",\n  \"description\": \"Books and stationery\",\n  \"seq\": 5\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -223,12 +286,21 @@
           "name": "Update category",
           "request": {
             "method": "PUT",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/category/1",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Electronics\",\n  \"description\": \"Electronic devices and accessories\",\n  \"seq\": 1\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -247,12 +319,21 @@
           "name": "Add product for seller 1",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/product/add/1",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Sony WH-1000XM5\",\n  \"brand\": \"Sony\",\n  \"description\": \"Wireless noise cancelling headphones\",\n  \"price\": 24999.0,\n  \"stockQty\": 25,\n  \"imageUrl\": \"https://example.com/images/sony-wh1000xm5.jpg\",\n  \"categoryId\": 1\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -280,55 +361,65 @@
           "name": "Get all products",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/product/all"
+            "url": "{{baseUrl}}/api/product/all?page=0&size=20"
           },
           "response": [],
-          "description": "Returns the full catalogue (seeded: Sony WH-1000XM5, Dell XPS 15, iPhone 15 Pro, Cotton Shirt, Office Chair)."
+          "description": "Returns the full catalogue (seeded: Sony WH-1000XM5, Dell XPS 15, iPhone 15 Pro, Cotton Shirt, Office Chair). Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get products by brand",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/product/brand?brand=Sony"
+            "url": "{{baseUrl}}/api/product/brand?brand=Sony&page=0&size=20"
           },
           "response": [],
-          "description": "Returns every product whose brand matches the brand query parameter exactly (case sensitive)."
+          "description": "Returns every product whose brand matches the brand query parameter exactly (case sensitive). Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get products by price range",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/product/price?min=1000&max=100000"
+            "url": "{{baseUrl}}/api/product/price?min=1000&max=100000&page=0&size=20"
           },
           "response": [],
-          "description": "Returns every product priced between the inclusive min and max query parameters."
+          "description": "Returns every product priced between the inclusive min and max query parameters. Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Search products by name",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/product/search?keyword=shirt"
+            "url": "{{baseUrl}}/api/product/search?keyword=shirt&page=0&size=20"
           },
           "response": [],
-          "description": "Returns every product whose name contains the keyword (case insensitive partial match)."
+          "description": "Returns every product whose name contains the keyword (case insensitive partial match). Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get products by category",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/product/category/1"
+            "url": "{{baseUrl}}/api/product/category/1?page=0&size=20"
           },
           "response": [],
-          "description": "Returns every product in category 1 (Electronics)."
+          "description": "Returns every product in category 1 (Electronics). Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Dynamic product filter",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/product/filter?brand=Sony&categoryId=1&minPrice=1000&maxPrice=150000"
+            "url": "{{baseUrl}}/api/product/filter?brand=Sony&categoryId=1&minPrice=1000&maxPrice=150000&page=0&size=20"
           },
           "response": [],
-          "description": "Applies any combination of the four optional query parameters brand, categoryId, minPrice and maxPrice in a single call; omitted parameters stay open and match everything. Try /api/product/filter?brand=Sony alone, or ?minPrice=1000&maxPrice=5000."
+          "description": "Applies any combination of the four optional query parameters brand, categoryId, minPrice and maxPrice in a single call; omitted parameters stay open and match everything. Try /api/product/filter?brand=Sony alone, or ?minPrice=1000&maxPrice=5000. Paged with optional page (default 0) and size (default 20) query params."
+        },
+        {
+          "name": "Get unpurchased products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/product/unpurchased?page=0&size=20"
+          },
+          "response": [],
+          "description": "LEFT JOIN JPQL demo: products that never appear in any order line (from Product p left join p.orderItems oi where oi is null). Optional page (default 0) and size (default 20) pagination params apply."
         },
         {
           "name": "Mark product out of stock",
@@ -358,12 +449,21 @@
           "name": "Add shipping address for customer 1",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": "{{baseUrl}}/api/address/add/1",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"recipientName\": \"John Doe\",\n  \"phone\": \"9876543210\",\n  \"streetAddress\": \"42 MG Road, Anna Nagar\",\n  \"city\": \"Chennai\",\n  \"state\": \"Tamil Nadu\",\n  \"postalCode\": \"600028\",\n  \"isDefault\": true\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           },
           "response": [],
@@ -460,10 +560,10 @@
           "name": "Get orders of customer 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/order/customer/1"
+            "url": "{{baseUrl}}/api/order/customer/1?page=0&size=20"
           },
           "response": [],
-          "description": "Returns every order placed by customer 1."
+          "description": "Returns every order placed by customer 1. Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Get tracking of order 1",
@@ -478,10 +578,10 @@
           "name": "Get order items of seller 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/order/seller/1"
+            "url": "{{baseUrl}}/api/order/seller/1?page=0&size=20"
           },
           "response": [],
-          "description": "Returns every order item that belongs to seller 1's products, with its current status - the seller's view for fulfilment."
+          "description": "Returns every order item that belongs to seller 1's products, with its current status - the seller's view for fulfilment. Paged with optional page (default 0) and size (default 20) query params."
         },
         {
           "name": "Update order item status",

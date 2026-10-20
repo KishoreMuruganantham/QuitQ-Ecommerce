@@ -8,7 +8,7 @@
 ![Java](https://img.shields.io/badge/Java-21-E76F00.svg?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F.svg?logo=springboot&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-00758F.svg?logo=mysql&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-49%20requests-F15A29.svg?logo=postman&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-50%20requests-F15A29.svg?logo=postman&logoColor=white)
 ![Release](https://img.shields.io/github/v/release/KishoreMuruganantham/QuitQ-Ecommerce?label=release)
 ![Training](https://img.shields.io/badge/Hexaware-FSD%20Training-E60012.svg)
 
@@ -26,8 +26,8 @@ This repository captures the **API layer plus the design and persistence layer**
 
 | Artefact | Purpose |
 | :-- | :-- |
-| `quitq_backend/` | Spring Boot 3.5 REST API — **46 endpoints** covering all eight business flows |
-| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 49 requests, ready to import |
+| `quitq_backend/` | Spring Boot 3.5 REST API — **47 endpoints** covering all eight business flows |
+| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 50 requests, ready to import |
 | `quitq_ecommerce.sql` | Complete, runnable MySQL 8.0 schema with constraints, triggers and seed data |
 | `quitq_ecommerce.mwb` | Editable MySQL Workbench EER model of the same schema |
 | `docs/QuitQ - Ecom.pdf` | Project specification and architecture document |
@@ -40,6 +40,8 @@ The schema is **normalised to 3NF**, fully constrained with foreign keys, and en
 ## API Reference
 
 Base URL: `http://localhost:8080` — all endpoints are JSON, grouped below exactly as the four Postman folders.
+
+Paged list endpoints (product lists, order history, seller orders, admin customer/seller/user lists) accept optional `page` (default `0`) and `size` (default `20`) query parameters.
 
 ### Flow 1 — Auth & Signup
 
@@ -71,6 +73,7 @@ Base URL: `http://localhost:8080` — all endpoints are JSON, grouped below exac
 | GET | `/api/product/search?keyword=shirt` | Derived query — keyword search |
 | GET | `/api/product/category/{categoryId}` | Derived query — by category |
 | GET | `/api/product/filter` | **Dynamic filter** — `brand`, `categoryId`, `minPrice`, `maxPrice` (all optional) via `(?N IS NULL OR …)` JPQL |
+| GET | `/api/product/unpurchased` | **LEFT JOIN JPQL** — products that never appear in an order line (`left join … where oi is null`) |
 | PUT | `/api/product/{id}/out-of-stock` | Mark a product out of stock |
 | DELETE | `/api/product/{id}` | Remove a product |
 
@@ -154,9 +157,9 @@ HTTP  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + J
 
 | Piece | Count | Notes |
 | :-- | :-- | :-- |
-| Controllers | 11 | 46 endpoints, no class-level `@RequestMapping` |
+| Controllers | 11 | 47 endpoints, no class-level `@RequestMapping` |
 | Services | 11 | Business rules; checkout is a single `@Transactional` method |
-| Repositories | 12 | Derived queries, one JPQL `@Query` for the dynamic filter, group-by and join queries |
+| Repositories | 12 | Derived queries plus four JPQL `@Query` methods — dynamic filter, seller join, group-by stats, LEFT JOIN unpurchased lookup |
 | Entities | 12 | Mapped onto the existing tables (`@Table(name = "users")` etc.) |
 | DTOs | 22 | `record` types — request (`*Dto`) and response (`*RespDto` / `*InfoDto` / `*StatDto`) |
 | Mappers | 7 | Static entity ↔ DTO conversion |
@@ -409,7 +412,7 @@ Run the collection folders in this order — the story reads end-to-end:
 ## Trying the API — Postman
 
 - **Import**: `postman/QuitQ-Ecommerce.postman_collection.json` into Postman (v2.1 format), or open the shared **QuitQ Ecommerce APIs** collection in your Postman workspace.
-- **4 folders / 49 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
+- **4 folders / 50 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
 - GET requests can also be pasted straight into the browser address bar — only POST/PUT/DELETE need Postman.
 
 ---
@@ -428,7 +431,7 @@ QuitQ-Ecommerce/
 │   └── src/main/
 │       ├── resources/application.properties   # datasource config
 │       └── java/com/springboot/quitq/
-│           ├── controller/          # 11 controllers · 46 endpoints
+│           ├── controller/          # 11 controllers · 47 endpoints
 │           ├── service/             # business rules + @Transactional checkout
 │           ├── repository/          # JpaRepository, JPQL, derived queries
 │           ├── model/               # 12 entities
@@ -439,7 +442,7 @@ QuitQ-Ecommerce/
 │           ├── config/              # GlobalExceptionHandler
 │           └── QuitqBackendApplication.java
 ├── postman/
-│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 49 requests
+│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 50 requests
 └── docs/
     ├── QuitQ - Ecom.pdf                              # Project specification
     └── E-commerce Registration &-2026-09-25-055625.png  # Workflow diagram
