@@ -32,6 +32,8 @@ import com.springboot.quitq.repository.ProductRepository;
 import com.springboot.quitq.repository.SellerRepository;
 import com.springboot.quitq.repository.ShippingAddressRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -137,13 +139,15 @@ public class OrderService {
         return OrderMapper.convertEntityToDto(optional.get());
     }
 
-    public List<OrderRespDto> getByCustomer(long customerId) {
+    public List<OrderRespDto> getByCustomer(long customerId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
 
         Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
         if(optionalCustomer.isEmpty())
             throw new ResourceNotFoundException("Customer id Invalid");
 
-        List<Orders> list = ordersRepository.findByCustomerId(customerId);
+        List<Orders> list = ordersRepository.findByCustomerId(customerId, pageable);
         return list
                 .stream()
                 .map(OrderMapper ::convertEntityToDto)
@@ -163,13 +167,15 @@ public class OrderService {
                 .toList();
     }
 
-    public List<OrderItemInfoDto> getBySeller(long sellerId) {
+    public List<OrderItemInfoDto> getBySeller(long sellerId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
 
         Optional<Seller> optionalSeller = sellerRepository.findById(sellerId);
         if(optionalSeller.isEmpty())
             throw new ResourceNotFoundException("Invalid seller id");
 
-        return orderItemRepository.getOrdersBySellerId(sellerId);
+        return orderItemRepository.getOrdersBySellerId(sellerId, pageable);
     }
 
     public OrderItemInfoDto updateItemStatus(long orderItemId, OrderStatus status) {

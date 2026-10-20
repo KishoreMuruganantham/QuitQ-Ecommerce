@@ -2,6 +2,7 @@ package com.springboot.quitq.repository;
 
 import com.springboot.quitq.dto.response.ProductRespDto;
 import com.springboot.quitq.model.Product;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -11,13 +12,13 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
-    List<Product> findByBrand(String brand);
+    List<Product> findByBrand(String brand, Pageable pageable);
 
-    List<Product> findByPriceBetween(Double min, Double max);
+    List<Product> findByPriceBetween(Double min, Double max, Pageable pageable);
 
-    List<Product> findByNameContainingIgnoreCase(String keyword);
+    List<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
 
-    List<Product> findByCategoryId(Long categoryId);
+    List<Product> findByCategoryId(Long categoryId, Pageable pageable);
 
     @Query("""
             select p.id as id, p.name as name, p.brand as brand, p.price as price,
@@ -28,5 +29,13 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
             AND  (?3 IS NULL OR p.price >= ?3)
             AND  (?4 IS NULL OR p.price <= ?4)
             """)
-    List<ProductRespDto> dynamicFilterProduct(String brand, Long categoryId, Double minPrice, Double maxPrice);
+    List<ProductRespDto> dynamicFilterProduct(String brand, Long categoryId, Double minPrice, Double maxPrice, Pageable pageable);
+
+    @Query("""
+            select p
+            from Product p
+            left join p.orderItems oi
+            where oi is null
+            """)
+    List<Product> findUnpurchased(Pageable pageable);
 }

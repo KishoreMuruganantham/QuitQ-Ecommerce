@@ -29,8 +29,10 @@ public class OrderController {
     }
 
     @GetMapping("/api/order/customer/{customerId}")
-    public List<OrderRespDto> getByCustomer(@PathVariable long customerId){
-        return orderService.getByCustomer(customerId);
+    public List<OrderRespDto> getByCustomer(@PathVariable long customerId,
+                                            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                            @RequestParam(name = "size", required = false, defaultValue = "20") Integer size){
+        return orderService.getByCustomer(customerId, page, size);
     }
 
     @GetMapping("/api/order/{orderId}/tracking")
@@ -39,8 +41,10 @@ public class OrderController {
     }
 
     @GetMapping("/api/order/seller/{sellerId}")
-    public List<OrderItemInfoDto> getBySeller(@PathVariable long sellerId){
-        return orderService.getBySeller(sellerId);
+    public List<OrderItemInfoDto> getBySeller(@PathVariable long sellerId,
+                                              @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                              @RequestParam(name = "size", required = false, defaultValue = "20") Integer size){
+        return orderService.getBySeller(sellerId, page, size);
     }
 
     @PutMapping("/api/order/item/{orderItemId}/status")

@@ -11,6 +11,8 @@ import com.springboot.quitq.model.User;
 import com.springboot.quitq.repository.SellerRepository;
 import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,8 +58,9 @@ public class SellerService {
         return SellerMapper.convertEntityToDto(optional.get());
     }
 
-    public List<SellerRespDto> getAll() {
-        List<Seller> list = sellerRepository.findAll();
+    public List<SellerRespDto> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Seller> list = sellerRepository.findAll(pageable).getContent();
         return list
                 .stream()
                 .map(SellerMapper ::convertEntityToDto)

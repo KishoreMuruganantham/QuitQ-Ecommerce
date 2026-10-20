@@ -8,6 +8,8 @@ import com.springboot.quitq.mapper.UserMapper;
 import com.springboot.quitq.model.User;
 import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -47,8 +49,9 @@ public class UserService {
         return UserMapper.convertEntityToDto(optional.get());
     }
 
-    public List<UserRespDto> getAll() {
-        List<User> list = userRepository.findAll();
+    public List<UserRespDto> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<User> list = userRepository.findAll(pageable).getContent();
         return list
                 .stream()
                 .map(UserMapper ::convertEntityToDto)

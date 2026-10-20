@@ -21,8 +21,9 @@ public class CustomerController {
     }
 
     @GetMapping("/api/customer/all")
-    public List<CustomerRespDto> getAll(){
-        return customerService.getAll();
+    public List<CustomerRespDto> getAll(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                        @RequestParam(name = "size", required = false, defaultValue = "20") Integer size){
+        return customerService.getAll(page, size);
     }
 
     @GetMapping("/api/customer/{id}")

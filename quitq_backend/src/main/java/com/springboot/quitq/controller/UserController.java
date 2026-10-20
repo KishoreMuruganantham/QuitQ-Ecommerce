@@ -26,8 +26,9 @@ public class UserController {
     }
 
     @GetMapping("/api/user/all")
-    public List<UserRespDto> getAll(){
-        return userService.getAll();
+    public List<UserRespDto> getAll(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                    @RequestParam(name = "size", required = false, defaultValue = "20") Integer size){
+        return userService.getAll(page, size);
     }
 
     @DeleteMapping("/api/user/{id}")

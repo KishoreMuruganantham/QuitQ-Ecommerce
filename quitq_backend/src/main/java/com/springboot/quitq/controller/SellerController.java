@@ -21,8 +21,9 @@ public class SellerController {
     }
 
     @GetMapping("/api/seller/all")
-    public List<SellerRespDto> getAll(){
-        return sellerService.getAll();
+    public List<SellerRespDto> getAll(@RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+                                      @RequestParam(name = "size", required = false, defaultValue = "20") Integer size){
+        return sellerService.getAll(page, size);
     }
 
     @GetMapping("/api/seller/{id}")

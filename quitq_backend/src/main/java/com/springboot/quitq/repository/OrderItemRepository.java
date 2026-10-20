@@ -2,6 +2,7 @@ package com.springboot.quitq.repository;
 
 import com.springboot.quitq.dto.response.OrderItemInfoDto;
 import com.springboot.quitq.model.OrderItem;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -22,5 +23,5 @@ public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
             JOIN oi.product p
             where oi.seller.id = ?1
             """)
-    List<OrderItemInfoDto> getOrdersBySellerId(Long sellerId);
+    List<OrderItemInfoDto> getOrdersBySellerId(Long sellerId, Pageable pageable);
 }

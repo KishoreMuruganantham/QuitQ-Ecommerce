@@ -6,6 +6,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -51,4 +52,7 @@ public class Product {
 
     @CreationTimestamp
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "product")
+    private List<OrderItem> orderItems;
 }

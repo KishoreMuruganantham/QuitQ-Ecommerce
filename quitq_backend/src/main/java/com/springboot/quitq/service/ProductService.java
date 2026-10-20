@@ -13,6 +13,8 @@ import com.springboot.quitq.repository.CategoryRepository;
 import com.springboot.quitq.repository.ProductRepository;
 import com.springboot.quitq.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -51,48 +53,63 @@ public class ProductService {
         return ProductMapper.convertEntityToInfoDto(optional.get());
     }
 
-    public List<ProductRespDto> getAll() {
-        List<Product> list = productRepository.findAll();
+    public List<ProductRespDto> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Product> list = productRepository.findAll(pageable).getContent();
         return list
                 .stream()
                 .map(ProductMapper ::convertEntityToDto)
                 .toList();
     }
 
-    public List<ProductRespDto> getByBrand(String brand) {
-        List<Product> list = productRepository.findByBrand(brand);
+    public List<ProductRespDto> getByBrand(String brand, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Product> list = productRepository.findByBrand(brand, pageable);
         return list
                 .stream()
                 .map(ProductMapper ::convertEntityToDto)
                 .toList();
     }
 
-    public List<ProductRespDto> getByPriceRange(Double min, Double max) {
-        List<Product> list = productRepository.findByPriceBetween(min, max);
+    public List<ProductRespDto> getByPriceRange(Double min, Double max, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Product> list = productRepository.findByPriceBetween(min, max, pageable);
         return list
                 .stream()
                 .map(ProductMapper ::convertEntityToDto)
                 .toList();
     }
 
-    public List<ProductRespDto> searchByName(String keyword) {
-        List<Product> list = productRepository.findByNameContainingIgnoreCase(keyword);
+    public List<ProductRespDto> searchByName(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Product> list = productRepository.findByNameContainingIgnoreCase(keyword, pageable);
         return list
                 .stream()
                 .map(ProductMapper ::convertEntityToDto)
                 .toList();
     }
 
-    public List<ProductRespDto> getByCategory(Long categoryId) {
-        List<Product> list = productRepository.findByCategoryId(categoryId);
+    public List<ProductRespDto> getByCategory(Long categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Product> list = productRepository.findByCategoryId(categoryId, pageable);
         return list
                 .stream()
                 .map(ProductMapper ::convertEntityToDto)
                 .toList();
     }
 
-    public List<ProductRespDto> dynamicFilter(String brand, Long categoryId, Double minPrice, Double maxPrice) {
-        return productRepository.dynamicFilterProduct(brand, categoryId, minPrice, maxPrice);
+    public List<ProductRespDto> dynamicFilter(String brand, Long categoryId, Double minPrice, Double maxPrice, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.dynamicFilterProduct(brand, categoryId, minPrice, maxPrice, pageable);
+    }
+
+    public List<ProductRespDto> unpurchased(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        List<Product> list = productRepository.findUnpurchased(pageable);
+        return list
+                .stream()
+                .map(ProductMapper ::convertEntityToDto)
+                .toList();
     }
 
     public void updateStatus(long id) {
