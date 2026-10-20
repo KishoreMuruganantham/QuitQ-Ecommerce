@@ -1,37 +1,121 @@
 {
   "info": {
     "name": "QuitQ Ecommerce APIs",
-    "description": "Collection for the QuitQ E-Commerce Spring Boot backend running at http://localhost:8080 (MySQL db quitq_db).\n\nOrganised one folder per application flow:\n- Flow 1 - Auth & Signup: login, customer/seller signup and user management\n- Flow 2/6/8 - Category & Product: category CRUD, product catalogue, search, filter, stock\n- Flow 3/4 - Address & Cart: shipping addresses and the shopping cart\n- Flow 4/5/7/8 - Order, Payment, Seller & Admin: order lifecycle, payments, seller order items, admin analytics\n\nSeeded data: customers 1 (john_doe / john@123) and 2 (jane / jane@123); sellers 1 (techstore) and 2 (fashionhub); categories 1 Electronics, 2 Mobile, 3 Fashion, 4 Home & Furniture; products 1 Sony WH-1000XM5, 2 Dell XPS 15, 3 iPhone 15 Pro, 4 Cotton Shirt, 5 Office Chair; customer 1 has shipping address 1 and order 1 (Q1791738744814, UPI, COMPLETED).\n\nThere is no authentication token: every endpoint is open and accepts JSON directly.",
+    "description": "Collection for the QuitQ E-Commerce Spring Boot backend running at http://localhost:8080 (MySQL db quitq_db).\n\nOrganised one folder per application flow:\n- Flow 1 - Auth & Signup: login, customer/seller signup and user management\n- Flow 2/6/8 - Category & Product: category CRUD, product catalogue, search, filter, stock\n- Flow 3/4 - Address & Cart: shipping addresses and the shopping cart\n- Flow 4/5/7/8 - Order, Payment, Seller & Admin: order lifecycle, payments, seller order items, admin analytics\n\nSeeded accounts: admin / admin@123 (admin), techstore / techstore@123 and fashionhub / fashionhub@123 (sellers 1 and 2), john_doe / john@123 (customer 1, with cart item 1 and shipping address 1). Categories 1 Electronics, 2 Mobile, 3 Fashion, 4 Home & Furniture; products 1 Sony WH-1000XM5, 2 Dell XPS 15, 3 iPhone 15 Pro, 4 Cotton Shirt, 5 Office Chair.\n\nAuthentication: run the three login requests first - each sends HTTP Basic and stores the returned JWT in the customerToken / sellerToken / adminToken collection variable; every protected request then sends Authorization: Bearer {{...}}. The signups, the user bootstrap and all catalogue/category reads stay open with no token.",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "Flow 1 - Auth & Signup",
-      "description": "Authentication plus customer, seller and user registration and management.",
+      "description": "Authentication (JWT login with HTTP Basic) plus customer, seller and user registration and management. Run the three login requests first to populate the role tokens.",
       "item": [
         {
           "name": "Login - customer john_doe",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": "{{baseUrl}}/api/auth/login",
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"john_doe\",\n  \"password\": \"john@123\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('customerToken', pm.response.json().token);"
+                ]
               }
             }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "john_doe",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "john@123",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/auth/login"
           },
           "response": [],
-          "description": "Authenticates a user with the LoginDto body (username, password). Returns the matching user profile with its role. No token is issued, so no further requests need to carry credentials. Expected: 200 with the user JSON, or 400 for an unknown username."
+          "description": "HTTP Basic login as john_doe. Returns TokenDto (token, expiryTime, issueTime) and stores the JWT in the customerToken collection variable for the requests in this collection."
+        },
+        {
+          "name": "Login - seller techstore",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('sellerToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "techstore",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "techstore@123",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "response": [],
+          "description": "HTTP Basic login as techstore. Returns TokenDto (token, expiryTime, issueTime) and stores the JWT in the sellerToken collection variable for the requests in this collection."
+        },
+        {
+          "name": "Login - admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('adminToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "admin",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "admin@123",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{baseUrl}}/api/auth/login"
+          },
+          "response": [],
+          "description": "HTTP Basic login as admin. Returns TokenDto (token, expiryTime, issueTime) and stores the JWT in the adminToken collection variable for the requests in this collection."
         },
         {
           "name": "Signup customer",
@@ -109,7 +193,13 @@
           "name": "Get all customers",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/customer/all?page=0&size=20"
+            "url": "{{baseUrl}}/api/customer/all?page=0&size=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns every registered customer with ids, usernames and contact details. Paged with optional page (default 0) and size (default 20) query params."
@@ -118,7 +208,13 @@
           "name": "Get customer by id",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/customer/1"
+            "url": "{{baseUrl}}/api/customer/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the customer with id 1 (john_doe). Expected: 200, or 400 for an unknown id."
@@ -127,7 +223,13 @@
           "name": "Delete customer by id",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/customer/9"
+            "url": "{{baseUrl}}/api/customer/9",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Deletes the customer row with the given id (use the id returned by a test signup). Returns no body. Destructive - do not point it at the seeded customers 1 and 2."
@@ -160,7 +262,13 @@
           "name": "Get all sellers",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/seller/all?page=0&size=20"
+            "url": "{{baseUrl}}/api/seller/all?page=0&size=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns every seller (seeded: 1 techstore, 2 fashionhub). Paged with optional page (default 0) and size (default 20) query params."
@@ -169,7 +277,13 @@
           "name": "Get seller by id",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/seller/1"
+            "url": "{{baseUrl}}/api/seller/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the seller with id 1 (techstore)."
@@ -178,7 +292,13 @@
           "name": "Delete seller by id",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/seller/9"
+            "url": "{{baseUrl}}/api/seller/9",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Deletes the seller row with the given id. Destructive - do not point it at the seeded sellers 1 and 2, which own the catalogue products."
@@ -211,7 +331,13 @@
           "name": "Get all users",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/user/all?page=0&size=20"
+            "url": "{{baseUrl}}/api/user/all?page=0&size=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns every login user with its role. Paged with optional page (default 0) and size (default 20) query params."
@@ -220,7 +346,13 @@
           "name": "Get user by id",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/user/1"
+            "url": "{{baseUrl}}/api/user/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the login user with the given id."
@@ -229,7 +361,13 @@
           "name": "Delete user by id",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/user/9"
+            "url": "{{baseUrl}}/api/user/9",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Deletes the login user with the given id. Destructive - deleting a seeded user would break login for that account."
@@ -248,6 +386,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/api/category/add",
@@ -290,6 +432,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
               }
             ],
             "url": "{{baseUrl}}/api/category/1",
@@ -310,7 +456,13 @@
           "name": "Delete category by id",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/category/9"
+            "url": "{{baseUrl}}/api/category/9",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Deletes the category with the given id. Destructive - do not point it at the seeded categories 1-4, which the seeded products reference."
@@ -323,6 +475,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
               }
             ],
             "url": "{{baseUrl}}/api/product/add/1",
@@ -425,7 +581,13 @@
           "name": "Mark product out of stock",
           "request": {
             "method": "PUT",
-            "url": "{{baseUrl}}/api/product/1/out-of-stock"
+            "url": "{{baseUrl}}/api/product/1/out-of-stock",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Toggles the stock status of product 1 between IN_STOCK and OUT_OF_STOCK. Returns no body; confirm with GET /api/product/{id}."
@@ -434,7 +596,13 @@
           "name": "Delete product by id",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/product/5"
+            "url": "{{baseUrl}}/api/product/5",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Deletes the product with the given id. Destructive - do not point it at the seeded products 1-5 unless the deletion itself is what you are testing."
@@ -453,6 +621,10 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
               }
             ],
             "url": "{{baseUrl}}/api/address/add/1",
@@ -473,7 +645,13 @@
           "name": "Get all addresses of customer 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/address/all/1"
+            "url": "{{baseUrl}}/api/address/all/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns every shipping address belonging to customer 1 (seeded: address 1)."
@@ -482,7 +660,13 @@
           "name": "Get address by id",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/address/1"
+            "url": "{{baseUrl}}/api/address/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns shipping address 1 (customer 1's default address, used by the seeded order)."
@@ -491,7 +675,13 @@
           "name": "Delete address by id",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/address/9"
+            "url": "{{baseUrl}}/api/address/9",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Deletes the address with the given id. Destructive - address 1 is the shipping address of the seeded order 1, so only delete addresses created for testing."
@@ -500,7 +690,13 @@
           "name": "Add item to cart of customer 1",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/api/cart/add/1/1?quantity=1"
+            "url": "{{baseUrl}}/api/cart/add/1/1?quantity=1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Adds product 1 (Sony WH-1000XM5) to customer 1's cart, creating the cart on first use. quantity defaults to 1. Returns the cart item with its cartItemId and line total."
@@ -509,7 +705,13 @@
           "name": "View cart of customer 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/cart/1"
+            "url": "{{baseUrl}}/api/cart/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns customer 1's cart with all cart items and the grand total."
@@ -518,7 +720,13 @@
           "name": "Update cart item quantity",
           "request": {
             "method": "PUT",
-            "url": "{{baseUrl}}/api/cart/item/1?quantity=2"
+            "url": "{{baseUrl}}/api/cart/item/1?quantity=2",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Sets the quantity of cart item 1 to 2 and returns the updated cart item with the recalculated line total. Use a cartItemId returned by POST /api/cart/add."
@@ -527,7 +735,13 @@
           "name": "Remove cart item",
           "request": {
             "method": "DELETE",
-            "url": "{{baseUrl}}/api/cart/item/1"
+            "url": "{{baseUrl}}/api/cart/item/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Removes cart item 1 from the cart. Destructive to the cart contents only; use a cartItemId returned by POST /api/cart/add."
@@ -542,7 +756,13 @@
           "name": "Checkout customer 1 with address 1 (UPI)",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/api/order/checkout/1/1?method=UPI"
+            "url": "{{baseUrl}}/api/order/checkout/1/1?method=UPI",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Converts customer 1's cart into an order shipped to address 1. The method query parameter is a PaymentMethod: UPI, COD, CREDIT_CARD, DEBIT_CARD or NET_BANKING (defaults to COD). Returns the order with its order id, order number and items. Destructive: it empties the cart, consumes stock and creates a real order - only run it when placing an order is intended."
@@ -551,7 +771,13 @@
           "name": "Get order by id",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/order/1"
+            "url": "{{baseUrl}}/api/order/1",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns seeded order 1 (order number Q1791738744814, UPI, COMPLETED) with its items, payment and shipping address."
@@ -560,7 +786,13 @@
           "name": "Get orders of customer 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/order/customer/1?page=0&size=20"
+            "url": "{{baseUrl}}/api/order/customer/1?page=0&size=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns every order placed by customer 1. Paged with optional page (default 0) and size (default 20) query params."
@@ -569,7 +801,13 @@
           "name": "Get tracking of order 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/order/1/tracking"
+            "url": "{{baseUrl}}/api/order/1/tracking",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the order tracking timeline of order 1 (\"Order placed successfully\" first, one row appended as the order moves through PLACED, PROCESSING, SHIPPED, DELIVERED)."
@@ -578,7 +816,13 @@
           "name": "Get order items of seller 1",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/order/seller/1?page=0&size=20"
+            "url": "{{baseUrl}}/api/order/seller/1?page=0&size=20",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns every order item that belongs to seller 1's products, with its current status - the seller's view for fulfilment. Paged with optional page (default 0) and size (default 20) query params."
@@ -587,7 +831,13 @@
           "name": "Update order item status",
           "request": {
             "method": "PUT",
-            "url": "{{baseUrl}}/api/order/item/1/status?status=SHIPPED"
+            "url": "{{baseUrl}}/api/order/item/1/status?status=SHIPPED",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Sets the status of order item 1. status is an OrderStatus: PLACED, PROCESSING, SHIPPED, DELIVERED or CANCELLED; the usual timeline is PLACED - PROCESSING - SHIPPED - DELIVERED. Returns the updated order item."
@@ -596,7 +846,13 @@
           "name": "Complete payment of order 1",
           "request": {
             "method": "POST",
-            "url": "{{baseUrl}}/api/payment/1/complete?txnId=TXN12345"
+            "url": "{{baseUrl}}/api/payment/1/complete?txnId=TXN12345",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{customerToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Marks the payment of order 1 as COMPLETED and records the txnId. Payments start as PENDING at checkout. Returns the payment record with its transaction id and amount."
@@ -605,7 +861,13 @@
           "name": "Admin - orders by status",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/admin/analytics/orders-by-status"
+            "url": "{{baseUrl}}/api/admin/analytics/orders-by-status",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the count of order items grouped by OrderStatus."
@@ -614,7 +876,13 @@
           "name": "Admin - user count",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/admin/users/count"
+            "url": "{{baseUrl}}/api/admin/users/count",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the total number of login users."
@@ -623,7 +891,13 @@
           "name": "Admin - seller count",
           "request": {
             "method": "GET",
-            "url": "{{baseUrl}}/api/admin/sellers/count"
+            "url": "{{baseUrl}}/api/admin/sellers/count",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
           },
           "response": [],
           "description": "Returns the total number of registered sellers."
@@ -636,6 +910,18 @@
       "key": "baseUrl",
       "value": "http://localhost:8080",
       "description": "Base URL of the running QuitQ Spring Boot backend."
+    },
+    {
+      "key": "customerToken",
+      "value": ""
+    },
+    {
+      "key": "sellerToken",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
     }
   ]
 }

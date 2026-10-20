@@ -8,7 +8,7 @@
 ![Java](https://img.shields.io/badge/Java-21-E76F00.svg?logo=openjdk&logoColor=white)
 ![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.5.16-6DB33F.svg?logo=springboot&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-00758F.svg?logo=mysql&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-50%20requests-F15A29.svg?logo=postman&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-52%20requests-F15A29.svg?logo=postman&logoColor=white)
 ![Release](https://img.shields.io/github/v/release/KishoreMuruganantham/QuitQ-Ecommerce?label=release)
 ![Training](https://img.shields.io/badge/Hexaware-FSD%20Training-E60012.svg)
 
@@ -27,7 +27,7 @@ This repository captures the **API layer plus the design and persistence layer**
 | Artefact | Purpose |
 | :-- | :-- |
 | `quitq_backend/` | Spring Boot 3.5 REST API — **47 endpoints** covering all eight business flows |
-| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 50 requests, ready to import |
+| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 52 requests, ready to import |
 | `quitq_ecommerce.sql` | Complete, runnable MySQL 8.0 schema with constraints, triggers and seed data |
 | `quitq_ecommerce.mwb` | Editable MySQL Workbench EER model of the same schema |
 | `docs/QuitQ - Ecom.pdf` | Project specification and architecture document |
@@ -47,7 +47,7 @@ Paged list endpoints (product lists, order history, seller orders, admin custome
 
 | Method | URL | Result |
 | :-- | :-- | :-- |
-| POST | `/api/auth/login` | Login via `LoginDto` (`username`, `password`) → profile |
+| GET | `/api/auth/login` | HTTP Basic login → JWT `TokenDto` (`token`, `expiryTime`, `issueTime`) |
 | POST | `/api/customer/signup` | Creates user + customer profile (`SignupDto`) |
 | GET | `/api/customer/all` · `/api/customer/{id}` | Customer reads |
 | DELETE | `/api/customer/{id}` | Remove a customer |
@@ -119,10 +119,22 @@ The database enforces the rest: `trg_check_stock_before_order` refuses to insert
 
 ---
 
+## Authentication & Authorisation
+
+Spring Security is wired the way the trainer's module teaches it:
+
+- **`SecurityConfig`** — a `SecurityFilterChain` with **38 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
+- **Login** — `GET /api/auth/login` with an HTTP Basic header returns `TokenDto` (`token`, `expiryTime`, `issueTime`). The JWT (HS256, 24-hour expiry, subject = username) is minted by `JwtUtility`.
+- **`JwtFilter`** — a `OncePerRequestFilter` registered before Spring's `UsernamePasswordAuthenticationFilter`; it reads `Authorization: Bearer <token>`, validates it, loads the user and pushes the `Role` authorities into the `SecurityContext`.
+- **Role rules** — signups, the user bootstrap and all catalogue/category reads stay open; cart, address, checkout, payment and customer reads require `ROLE_CUSTOMER`; product mutations and the seller order screens require `ROLE_SELLER`; analytics, user/seller management and category management require `ROLE_ADMIN`.
+- **Ownership checks** — every customer/seller-scoped service method also receives the authenticated `Principal`'s username and verifies the target resource belongs to that user; a mismatch raises `OwnershipException` → HTTP 400 `ErrorDto`, the same error shape as the rest of the API.
+
+---
+
 ## Feature Set
 
 **Flow 1 · Registration & Login**
-Role-based sign-up (Customer / Seller), server-side validation, account creation and role-aware login routing into the correct dashboard.
+Role-based sign-up (Customer / Seller) with **BCrypt**-hashed passwords, **HTTP Basic** login issuing a **JWT**, and role- plus ownership-checked access on every protected API.
 
 **Flow 2 · Browse & Search**
 Keyword search with auto-suggestions, category browsing (Electronics, Mobile, Fashion, Home & Furniture), brand and price filtering, product detail pages and add-to-cart.
@@ -144,8 +156,8 @@ Analytics report lists, category inventory management (add / modify / remove), a
 ## Architecture
 
 ```
-HTTP  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + JPQL)  ─▶  MySQL 8
-         @RestController  @Service     derived queries / @Query / group-by
+HTTP  ─▶  Spring Security (JwtFilter + 38 role rules)  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + JPQL)  ─▶  MySQL 8
+                                                             @RestController  @Service     derived queries / @Query / group-by
               │               │
               ▼               ▼
          DTO in (@Valid)   @Transactional checkout
@@ -164,7 +176,8 @@ HTTP  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + J
 | DTOs | 22 | `record` types — request (`*Dto`) and response (`*RespDto` / `*InfoDto` / `*StatDto`) |
 | Mappers | 7 | Static entity ↔ DTO conversion |
 | Enums | 5 | `Role`, `ProductStatus`, `OrderStatus`, `PaymentMethod`, `PaymentStatus` |
-| Exceptions | 3 + handler | Custom exceptions + `GlobalExceptionHandler` |
+| Exceptions | 4 + handler | Custom exceptions (incl. `OwnershipException`) + `GlobalExceptionHandler` |
+| Security | 38 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks |
 
 > Spring Security is on the classpath, but `SecurityAutoConfiguration` is excluded so the prototype starts without authentication — JWT and role-based authorisation are the next module.
 
@@ -220,6 +233,7 @@ erDiagram
         varchar email UK
         varchar password
         varchar role
+        bit is_active
     }
     customer {
         int id PK
@@ -386,21 +400,20 @@ Open `quitq_ecommerce.mwb` in MySQL Workbench to explore or edit the EER diagram
 
 ## Seeded Demo Data
 
-| Role | Username | Email | Notes |
-| :-- | :-- | :-- | :-- |
-| Admin | `admin` | `admin@quitq.com` | Full analytics & moderation access |
-| Seller | `techstore` | `seller1@quitq.com` | TechStore Electronics — Bangalore |
-| Seller | `fashionhub` | `seller2@quitq.com` | FashionHub Retail — Mumbai |
-| Customer | `john_doe` | `john@example.com` | 1 cart item, 1 saved address (Chennai) |
-| Customer | `jane` | `jane@example.com` | Second customer for multi-user demos |
+| Role | Username | Password | Email | Notes |
+| :-- | :-- | :-- | :-- | :-- |
+| Admin | `admin` | `admin@123` | `admin@quitq.com` | Full analytics & moderation access |
+| Seller | `techstore` | `techstore@123` | `seller1@quitq.com` | TechStore Electronics — Bangalore (seller 1) |
+| Seller | `fashionhub` | `fashionhub@123` | `seller2@quitq.com` | FashionHub Retail — Mumbai (seller 2) |
+| Customer | `john_doe` | `john@123` | `john@example.com` | Customer 1 — 1 cart item, 1 saved address (Chennai) |
 
-> The `password` column holds **placeholder values**, not usable credentials. Login currently resolves the profile by **username only**; password verification and JWT arrive with the security module (see [Roadmap](#roadmap)).
+> Passwords are stored as **BCrypt hashes** (`$2a$10$…`) and verified by Spring Security's `DaoAuthenticationProvider`; only rows with `users.is_active = 1` can log in. Every signup encodes its password on the way in.
 
 ### Suggested demo walkthrough
 
 Run the collection folders in this order — the story reads end-to-end:
 
-1. **Login** as `john_doe`, then trigger the **duplicate signup** and **empty-field** error scenarios.
+1. Run the **three login requests** (HTTP Basic) — each stores its JWT in `customerToken` / `sellerToken` / `adminToken` — then trigger the **duplicate signup** and **empty-field** error scenarios.
 2. **Browse** the catalogue: search, brand/price queries, then the **dynamic filter**.
 3. **Add an address** and **add items to the cart** (note the price snapshot).
 4. Check `GET /api/product/1` → **checkout** with `method=UPI` → check the stock again: `25 → 22` (trigger-driven), then read the **tracking timeline** and complete the **payment**.
@@ -412,8 +425,9 @@ Run the collection folders in this order — the story reads end-to-end:
 ## Trying the API — Postman
 
 - **Import**: `postman/QuitQ-Ecommerce.postman_collection.json` into Postman (v2.1 format), or open the shared **QuitQ Ecommerce APIs** collection in your Postman workspace.
-- **4 folders / 50 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
-- GET requests can also be pasted straight into the browser address bar — only POST/PUT/DELETE need Postman.
+- **4 folders / 52 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
+- Run the **three login requests first** — each uses HTTP Basic and saves its JWT to a collection variable (`customerToken`, `sellerToken`, `adminToken`); every protected request then sends `Authorization: Bearer {{…}}`.
+- The open GETs (catalogue, categories) can still be pasted straight into the browser address bar; the rest need a token from the matching login.
 
 ---
 
@@ -442,7 +456,7 @@ QuitQ-Ecommerce/
 │           ├── config/              # GlobalExceptionHandler
 │           └── QuitqBackendApplication.java
 ├── postman/
-│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 50 requests
+│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 52 requests
 └── docs/
     ├── QuitQ - Ecom.pdf                              # Project specification
     └── E-commerce Registration &-2026-09-25-055625.png  # Workflow diagram
@@ -455,7 +469,7 @@ QuitQ-Ecommerce/
 - [x] MySQL 8.0 schema, ER model, constraints and business-rule triggers
 - [x] Spring Boot REST API covering all eight flows — layering, JPQL, validation, global exception handling
 - [x] Postman collection for every endpoint, with error scenarios
-- [ ] JWT authentication and role-based authorisation (Spring Security)
+- [x] JWT authentication, BCrypt passwords and role/ownership authorisation (Spring Security)
 - [ ] API documentation with Swagger / OpenAPI
 - [ ] Request logging and correlation ids
 - [ ] React front-end with the three dashboards
