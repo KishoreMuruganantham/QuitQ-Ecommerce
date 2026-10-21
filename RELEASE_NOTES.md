@@ -6,6 +6,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] — 2026-10-21
+
+Static analysis joins the workflow: the first SonarCloud analysis of the
+backend passes the quality gate with zero open issues, and the scanner is
+wired into the Maven build for every release that follows.
+
+### Added
+
+**Code quality (`pom.xml`)**
+
+- `sonar-maven-plugin` 5.8.0.7211 — one `./mvnw verify sonar:sonar` command
+  runs the suite and analyses the project against SonarCloud.
+- `jacoco-maven-plugin` 0.8.12 (`prepare-agent` plus a `report` execution
+  bound to the `test` phase) as the coverage source for the analysis.
+
+**Documentation**
+
+- README section *Code quality — SonarCloud* with the scanner command, the
+  first-analysis results and the reviewed issue; roadmap updated with the
+  static-analysis item.
+
+### Analysis results — 21 October 2026
+
+| Metric | Value |
+| :-- | :-- |
+| Quality gate | **PASSED** — 6/6 conditions OK |
+| Bugs · code smells · security hotspots | 0 · 0 · 0 |
+| Duplications | 0 % |
+| Maintainability debt | 0 min |
+| Coverage | 30.8 % |
+| Lines of code (NCLOC) | 2,587 |
+| Open issues | 0 |
+
+### Reviewed
+
+- `java:S4502` (CRITICAL) on `SecurityConfig`'s
+  `.csrf(AbstractHttpConfigurer::disable)` — resolved on SonarCloud as a
+  **false positive** with a written justification: QuitQ is a stateless REST
+  API; authentication uses Bearer JWTs in the `Authorization` header, no
+  client uses session cookies, and state-changing endpoints require a header
+  browsers never attach cross-origin. The source code is unchanged.
+
+---
+
 ## [2.0.0] — 2026-10-20
 
 The API is now secured: JWT login with BCrypt passwords, role-based route
@@ -306,6 +350,7 @@ a database containing data you wish to keep.
 
 ---
 
+[2.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.1.0
 [2.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.0.0
 [1.2.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.2.0
 [1.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.1.0

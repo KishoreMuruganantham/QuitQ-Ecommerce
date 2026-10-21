@@ -432,6 +432,33 @@ Run the collection folders in this order — the story reads end-to-end:
 
 ---
 
+## Code quality — SonarCloud
+
+Every release is checked on [SonarCloud](https://sonarcloud.io/dashboard?id=KishoreMuruganantham_QuitQ-Ecommerce) with the Maven scanner bound in `pom.xml` (`sonar-maven-plugin` 5.8.0.7211, coverage imported from a JaCoCo 0.8.12 report):
+
+```bash
+cd quitq_backend
+./mvnw verify sonar:sonar -Dsonar.host.url=https://sonarcloud.io \
+  -Dsonar.projectKey=KishoreMuruganantham_QuitQ-Ecommerce \
+  -Dsonar.organization=kishoremuruganantham \
+  -Dsonar.token=<personal-analysis-token>   # own token, never committed
+```
+
+**First analysis — 21 October 2026:**
+
+| Metric | Result |
+| :-- | :-- |
+| Quality gate | **PASSED** — all six conditions OK |
+| Bugs · code smells · security hotspots | 0 · 0 · 0 |
+| Duplications | 0 % |
+| Maintainability debt | 0 min |
+| Coverage | 30.8 % (14 unit tests over five service classes) |
+| Lines of code | 2,587 |
+
+The scan raised exactly one issue — `java:S4502` (CRITICAL) on the `.csrf(AbstractHttpConfigurer::disable)` line of `SecurityConfig` — which was **reviewed and resolved as a false positive** with a written justification: QuitQ is a stateless REST API, authentication uses Bearer JWTs in the `Authorization` header, no client holds a session cookie, and every state-changing endpoint requires a header browsers never attach cross-origin — so cross-site request forgery does not apply, and disabling CSRF is the standard configuration for token-only APIs.
+
+---
+
 ## Project Structure
 
 ```
@@ -477,6 +504,7 @@ QuitQ-Ecommerce/
 - [ ] Order status state machine with optimistic concurrency control
 - [ ] Payment gateway integration and webhook handling
 - [x] Unit tests with Mockito — 14 tests across five service classes
+- [x] SonarCloud static analysis — quality gate passed, zero open issues
 - [ ] CI pipeline with schema migration validation
 
 ---
