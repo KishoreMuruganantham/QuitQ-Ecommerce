@@ -6,6 +6,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] — 2026-11-01
+
+The platform gets its browser front-end: a React single-page app that signs
+the user in with HTTP Basic, reads the JWT's role from a new user-details
+endpoint and renders the matching dashboard — plus the customer cart flow
+(stat, add, delete) driven end-to-end through Redux.
+
+### Added
+
+**React UI (`quitq-ui/`)**
+
+- Vite 8 + React 19.3.1 project with react-router 7, Redux Toolkit, axios and
+  Bootstrap 5.3.3 from the CDN — five routes: login, `customer/signup`,
+  `customer/:token`, `admin/:token` and a page-not-found fallback.
+- `Login` — HTTP Basic to `GET /api/auth/login`, stores the JWT, then calls
+  `GET /api/auth/user-details` and switches on the role: `ROLE_CUSTOMER` →
+  customer dashboard, `ROLE_ADMIN` → admin dashboard, `ROLE_SELLER` → stays on
+  the login screen (seller dashboard on the roadmap).
+- `SignUp` — posts a `CustomerDto` to `POST /api/customer/signup`.
+- Customer dashboard composed of `Stat` (line count, units, total amount),
+  `AddToCart` (product id + quantity) and `CartList` (delete), all reading the
+  `cartItems` slice of a single `CustomerReducer`.
+- Redux round-trip actions mirroring the API: `getCartItems` (GET),
+  `addToCart` (POST) and `DELETE /api/cart/item/{id}` — the same
+  get/post/delete progression, wired through manual async thunks.
+- `AdminDashboard` re-verifies the token against `user-details` and re-checks
+  the role before rendering; `config.js` carries the dev/prod API base URL.
+
+**API (`quitq_backend/`)**
+
+- `GET /api/auth/user-details` — authenticated endpoint returning the new
+  `DetailsDto` record (`id`, `username`, `isActive`, `role`). For
+  `ROLE_CUSTOMER` the id is swapped to the customer id, because the cart APIs
+  are customer-id based; `UserRepository.getUserDetails` is a JPQL projection
+  over `users`.
+- `InactiveUserException` raised from `UserService.getUserDetails` when
+  `users.is_active = 0`, mapped by `GlobalExceptionHandler` to **HTTP 412**
+  with `ErrorDto(message, "Contact ADMIN admin@quitq.com", timestamp)`.
+- `SecurityConfig` gains a matcher for `GET /api/auth/user-details`
+  (`authenticated()`), taking the chain to 39 matchers.
+- `@CrossOrigin(origins = "http://localhost:5173")` on the three controllers
+  the UI calls — `AuthController`, `CustomerController`, `CartController`.
+
+**Documentation**
+
+- README: new *React UI* section, `user-details` and CORS in the auth
+  reference, UI run steps in *Getting Started*, updated endpoint/DTO/exception
+  counts and roadmap.
+
+### Verification
+
+- Backend suite green — 15 tests across five service classes.
+- UI production build green (`vite build`, 98 modules).
+- Browser end-to-end: customer login → dashboard with the seeded cart
+  (Rs. 24,999) → add product → delete → logout → admin login → sign-up →
+  seller sign-in stays on `/`.
+- CORS preflights 200 on every path the UI calls.
+
+### Known limitations
+
+- The seller dashboard is not built yet — a `ROLE_SELLER` login stores the
+  role and stays on the login screen.
+- `npm run lint` reports the same unused-variable warnings the component
+  sources inherit; `dev` and `build` do not run eslint.
+
+### Upgrade notes
+
+No schema change. After pulling, install the UI dependencies once, then run
+both servers:
+
+```bash
+cd quitq-ui && npm install && npm run dev     # terminal 1 → http://localhost:5173
+cd quitq_backend && ./mvnw spring-boot:run    # terminal 2 → :8080, start first
+```
+
+---
+
 ## [2.1.0] — 2026-10-21
 
 Static analysis joins the workflow: the first SonarCloud analysis of the
@@ -350,6 +427,7 @@ a database containing data you wish to keep.
 
 ---
 
+[2.2.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.2.0
 [2.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.1.0
 [2.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.0.0
 [1.2.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v1.2.0
