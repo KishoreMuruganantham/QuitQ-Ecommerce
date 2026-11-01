@@ -2,10 +2,12 @@ package com.springboot.quitq.config;
 
 import com.springboot.quitq.dto.response.ErrorDto;
 import com.springboot.quitq.exception.DuplicateEntryException;
+import com.springboot.quitq.exception.InactiveUserException;
 import com.springboot.quitq.exception.InsufficientStockException;
 import com.springboot.quitq.exception.InvalidCallException;
 import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -102,6 +104,20 @@ public class GlobalExceptionHandler {
                 .body(
                         new ErrorDto(e.getMessage(),
                                 "Logged-in User cannot perform this operation",
+                                Instant.now())
+                );
+    }
+
+    @ExceptionHandler(InactiveUserException.class)
+    public ResponseEntity<ErrorDto> handleInactiveUserException(
+            InactiveUserException e
+    ){
+
+        return ResponseEntity
+                .status(HttpStatus.PRECONDITION_FAILED)
+                .body(
+                        new ErrorDto(e.getMessage(),
+                                "Contact ADMIN admin@quitq.com",
                                 Instant.now())
                 );
     }

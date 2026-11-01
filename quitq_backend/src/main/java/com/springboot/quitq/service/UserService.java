@@ -1,11 +1,16 @@
 package com.springboot.quitq.service;
 
 import com.springboot.quitq.dto.request.UserDto;
+import com.springboot.quitq.dto.response.DetailsDto;
 import com.springboot.quitq.dto.response.UserRespDto;
+import com.springboot.quitq.enums.Role;
 import com.springboot.quitq.exception.DuplicateEntryException;
+import com.springboot.quitq.exception.InactiveUserException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.mapper.UserMapper;
+import com.springboot.quitq.model.Customer;
 import com.springboot.quitq.model.User;
+import com.springboot.quitq.repository.CustomerRepository;
 import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +26,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
 
     public void insert(UserDto userDto) {
@@ -67,5 +73,17 @@ public class UserService {
         getById(id);
 
         userRepository.deleteById(id);
+    }
+
+    public DetailsDto getUserDetails(String loggedInUsername) {
+        DetailsDto detailsDto = userRepository.getUserDetails(loggedInUsername);
+        if(!detailsDto.isActive())
+            throw new InactiveUserException("User is disabled");
+
+        if(detailsDto.role().equals(Role.ROLE_CUSTOMER)) {
+            Customer customer = customerRepository.getByUsername(loggedInUsername);
+            return new DetailsDto(customer.getId(), detailsDto.username(), detailsDto.isActive(), detailsDto.role());
+        }
+        return detailsDto;
     }
 }
