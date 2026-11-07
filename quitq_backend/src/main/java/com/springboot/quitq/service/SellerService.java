@@ -11,6 +11,7 @@ import com.springboot.quitq.model.User;
 import com.springboot.quitq.repository.SellerRepository;
 import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SellerService {
@@ -50,7 +52,7 @@ public class SellerService {
         Seller seller = SellerMapper.convertDtoToEntity(sellerDto, user);
 
         Seller saved = sellerRepository.save(seller);
-        System.out.println("record inserted...");
+        log.info("record inserted...");
         return SellerMapper.convertEntityToDto(saved);
     }
 

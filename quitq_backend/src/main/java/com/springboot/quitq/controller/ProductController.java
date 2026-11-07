@@ -80,6 +80,13 @@ public class ProductController {
         return productService.unpurchased(page, size);
     }
 
+    @PutMapping("/api/product/{id}")
+    public ProductRespDto updateProduct(@PathVariable long id,
+                                        @Valid @RequestBody ProductDto productDto,
+                                        Principal principal){
+        return productService.update(id, productDto, principal.getName());
+    }
+
     @PutMapping("/api/product/{id}/out-of-stock")
     public void updateStatus(@PathVariable long id, Principal principal){
         productService.updateStatus(id, principal.getName());

@@ -10,7 +10,7 @@
 ![React](https://img.shields.io/badge/React-19.3.1-61DAFB.svg?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF.svg?logo=vite&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-00758F.svg?logo=mysql&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-52%20requests-F15A29.svg?logo=postman&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-56%20requests-F15A29.svg?logo=postman&logoColor=white)
 ![Release](https://img.shields.io/github/v/release/KishoreMuruganantham/QuitQ-Ecommerce?label=release)
 ![Training](https://img.shields.io/badge/Hexaware-FSD%20Training-E60012.svg)
 
@@ -29,8 +29,8 @@ This repository captures the **React front-end, the API layer, plus the design a
 | Artefact | Purpose |
 | :-- | :-- |
 | `quitq-ui/` | React 19 + Vite 8 single-page app — JWT login, sign-up, customer cart dashboard and admin shell |
-| `quitq_backend/` | Spring Boot 3.5 REST API — **48 endpoints** covering all eight business flows |
-| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 52 requests, ready to import |
+| `quitq_backend/` | Spring Boot 3.5 REST API — **51 endpoints** covering all eight business flows |
+| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 56 requests, ready to import |
 | `quitq_ecommerce.sql` | Complete, runnable MySQL 8.0 schema with constraints, triggers and seed data |
 | `quitq_ecommerce.mwb` | Editable MySQL Workbench EER model of the same schema |
 | `docs/QuitQ - Ecom.pdf` | Project specification and architecture document |
@@ -60,6 +60,8 @@ The store is a single `CustomerReducer` with three actions — `getCartItems`, `
 
 Base URL: `http://localhost:8080` — all endpoints are JSON, grouped below exactly as the four Postman folders.
 
+Every `/api/**` path is also served under `/api/v1/**`, `/api/v2/**` and `/api/v3/**`; versioned responses carry an `X-API-Version` response header.
+
 Paged list endpoints (product lists, order history, seller orders, admin customer/seller/user lists) accept optional `page` (default `0`) and `size` (default `20`) query parameters.
 
 ### Flow 1 — Auth & Signup
@@ -68,6 +70,7 @@ Paged list endpoints (product lists, order history, seller orders, admin custome
 | :-- | :-- | :-- |
 | GET | `/api/auth/login` | HTTP Basic login → JWT `TokenDto` (`token`, `expiryTime`, `issueTime`) |
 | GET | `/api/auth/user-details` | Bearer JWT → `DetailsDto` (`id`, `username`, `isActive`, `role`) — the id is the customer id for `ROLE_CUSTOMER` |
+| POST | `/api/auth/logout` | Bearer JWT → `{"message":"Logged out successfully"}` — the token is denied server-side afterwards |
 | POST | `/api/customer/signup` | Creates user + customer profile (`SignupDto`) |
 | GET | `/api/customer/all` · `/api/customer/{id}` | Customer reads |
 | DELETE | `/api/customer/{id}` | Remove a customer |
@@ -88,6 +91,7 @@ Paged list endpoints (product lists, order history, seller orders, admin custome
 | DELETE | `/api/category/{id}` | Remove a category |
 | POST | `/api/product/add/{sellerId}` | Seller lists a product (`ProductDto`) |
 | GET | `/api/product/all` · `/api/product/{id}` | Product reads |
+| PUT | `/api/product/{id}` | Seller updates a product (`ProductDto`; `name` and `price` required) |
 | GET | `/api/product/brand?brand=Sony` | Derived query — by brand |
 | GET | `/api/product/price?min=1000&max=10000` | Derived query — price range |
 | GET | `/api/product/search?keyword=shirt` | Derived query — keyword search |
@@ -118,6 +122,7 @@ Paged list endpoints (product lists, order history, seller orders, admin custome
 | GET | `/api/order/customer/{customerId}` | Order history for a customer |
 | GET | `/api/order/{orderId}/tracking` | `order_tracking` timeline |
 | GET | `/api/order/seller/{sellerId}` | Seller's order items joined with customer + product |
+| GET | `/api/order/seller/{sellerId}/sales-report` | Per-product sales report (`productName`, `quantitySold`, `totalRevenue`) — `ROLE_SELLER` |
 | PUT | `/api/order/item/{orderItemId}/status?status=SHIPPED` | Advance an order item status |
 | POST | `/api/payment/{orderId}/complete?txnId=TXN12345` | Mark the payment completed |
 | GET | `/api/admin/analytics/orders-by-status` | `GROUP BY` status counts |
@@ -144,12 +149,12 @@ The database enforces the rest: `trg_check_stock_before_order` refuses to insert
 
 Spring Security is wired the way the trainer's module teaches it:
 
-- **`SecurityConfig`** — a `SecurityFilterChain` with **39 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
+- **`SecurityConfig`** — a `SecurityFilterChain` with **42 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
 - **Login** — `GET /api/auth/login` with an HTTP Basic header returns `TokenDto` (`token`, `expiryTime`, `issueTime`). The JWT (HS256, 24-hour expiry, subject = username) is minted by `JwtUtility`.
 - **User details** — `GET /api/auth/user-details` (authenticated) returns `DetailsDto` (`id`, `username`, `isActive`, `role`); for `ROLE_CUSTOMER` the id is swapped to the customer id the cart APIs need, and a disabled account raises `InactiveUserException` → HTTP 412. The UI calls it right after login to pick the dashboard.
 - **CORS** — `@CrossOrigin(origins = "http://localhost:5173")` on `AuthController`, `CustomerController` and `CartController`, the three controllers the React UI talks to.
 - **`JwtFilter`** — a `OncePerRequestFilter` registered before Spring's `UsernamePasswordAuthenticationFilter`; it reads `Authorization: Bearer <token>`, validates it, loads the user and pushes the `Role` authorities into the `SecurityContext`.
-- **Role rules** — signups, the user bootstrap and all catalogue/category reads stay open; cart, address, checkout, payment and customer reads require `ROLE_CUSTOMER`; product mutations and the seller order screens require `ROLE_SELLER`; analytics, user/seller management and category management require `ROLE_ADMIN`.
+- **Role rules** — signups, the user bootstrap and all catalogue/category reads stay open; logout accepts any authenticated JWT; cart, address, checkout, payment and customer reads require `ROLE_CUSTOMER`; product mutations and the seller order screens require `ROLE_SELLER`; analytics, user/seller management and category management require `ROLE_ADMIN`.
 - **Ownership checks** — every customer/seller-scoped service method also receives the authenticated `Principal`'s username and verifies the target resource belongs to that user; a mismatch raises `OwnershipException` → HTTP 400 `ErrorDto`, the same error shape as the rest of the API.
 
 ---
@@ -157,7 +162,7 @@ Spring Security is wired the way the trainer's module teaches it:
 ## Feature Set
 
 **Flow 1 · Registration & Login**
-Role-based sign-up (Customer / Seller) with **BCrypt**-hashed passwords, **HTTP Basic** login issuing a **JWT**, and role- plus ownership-checked access on every protected API.
+Role-based sign-up (Customer / Seller) with **BCrypt**-hashed passwords, **HTTP Basic** login issuing a **JWT** (revoked server-side on logout), and role- plus ownership-checked access on every protected API.
 
 **Flow 2 · Browse & Search**
 Keyword search with auto-suggestions, category browsing (Electronics, Mobile, Fashion, Home & Furniture), brand and price filtering, product detail pages and add-to-cart.
@@ -169,7 +174,7 @@ Per-customer persistent cart, quantity updates, item removal, live total recalcu
 Shipping address entry/selection, payment method choice (Credit Card, Debit Card, UPI, Net Banking, COD), stock re-check at confirmation, order ID generation, and a `Placed → Processing → Shipped → Delivered` status timeline.
 
 **Flow 6 & 7 · Seller Product & Order Processing**
-Seller catalogue management (add / edit / mark out-of-stock), plus an orders-received screen with status forwarding.
+Seller catalogue management (add / edit / mark out-of-stock), plus an orders-received screen with status forwarding and a per-product sales report.
 
 **Flow 8 · Admin Management**
 Analytics report lists, category inventory management (add / modify / remove), and user/seller profile moderation with account removal.
@@ -179,7 +184,7 @@ Analytics report lists, category inventory management (add / modify / remove), a
 ## Architecture
 
 ```
-HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFilter + 39 role rules)  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + JPQL)  ─▶  MySQL 8
+HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFilter + 42 role rules)  ─▶  Controller  ─▶  Service  ─▶  Repository (JpaRepository + JPQL)  ─▶  MySQL 8
                                                              @RestController  @Service     derived queries / @Query / group-by
               │               │
               ▼               ▼
@@ -193,7 +198,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 | Piece | Count | Notes |
 | :-- | :-- | :-- |
 | React UI | 8 components | `quitq-ui/` — login, sign-up, customer dashboard (stat / add / list), admin shell, page-not-found |
-| Controllers | 11 | 48 endpoints, no class-level `@RequestMapping` |
+| Controllers | 11 | 51 endpoints, no class-level `@RequestMapping` |
 | Services | 11 | Business rules; checkout is a single `@Transactional` method |
 | Repositories | 12 | Derived queries plus four JPQL `@Query` methods — dynamic filter, seller join, group-by stats, LEFT JOIN unpurchased lookup |
 | Entities | 12 | Mapped onto the existing tables (`@Table(name = "users")` etc.) |
@@ -201,7 +206,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 | Mappers | 7 | Static entity ↔ DTO conversion |
 | Enums | 5 | `Role`, `ProductStatus`, `OrderStatus`, `PaymentMethod`, `PaymentStatus` |
 | Exceptions | 6 + handler | Custom exceptions (incl. `OwnershipException`, `InactiveUserException`) + `GlobalExceptionHandler` |
-| Security | 39 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks, CORS for the UI |
+| Security | 42 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks, CORS for the UI |
 | Tests | 14 | Mockito unit tests across five service classes (`@ExtendWith(MockitoExtension.class)`) |
 
 > Catalogue reads are open to every caller (`permitAll`); write endpoints need a JWT with the matching role, and every customer/seller operation is additionally checked against the token's owner.
@@ -465,7 +470,7 @@ Run the collection folders in this order — the story reads end-to-end:
 ## Trying the API — Postman
 
 - **Import**: `postman/QuitQ-Ecommerce.postman_collection.json` into Postman (v2.1 format), or open the shared **QuitQ Ecommerce APIs** collection in your Postman workspace.
-- **4 folders / 52 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
+- **4 folders / 56 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
 - Run the **three login requests first** — each uses HTTP Basic and saves its JWT to a collection variable (`customerToken`, `sellerToken`, `adminToken`); every protected request then sends `Authorization: Bearer {{…}}`.
 - The open GETs (catalogue, categories) can still be pasted straight into the browser address bar; the rest need a token from the matching login.
 
@@ -512,7 +517,7 @@ QuitQ-Ecommerce/
 │   └── src/main/
 │       ├── resources/application.properties   # datasource config
 │       └── java/com/springboot/quitq/
-│           ├── controller/          # 11 controllers · 48 endpoints
+│           ├── controller/          # 11 controllers · 51 endpoints
 │           ├── service/             # business rules + @Transactional checkout
 │           ├── repository/          # JpaRepository, JPQL, derived queries
 │           ├── model/               # 12 entities
@@ -536,7 +541,7 @@ QuitQ-Ecommerce/
 │       │   └── PageNotFound.jsx
 │       └── store/                   # store.js · CustomerAction.js · CustomerReducer.js
 ├── postman/
-│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 52 requests
+│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 56 requests
 └── docs/
     ├── QuitQ - Ecom.pdf                              # Project specification
     └── E-commerce Registration &-2026-09-25-055625.png  # Workflow diagram

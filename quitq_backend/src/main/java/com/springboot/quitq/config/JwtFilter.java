@@ -2,6 +2,7 @@ package com.springboot.quitq.config;
 
 import com.springboot.quitq.service.MyUserDetailsService;
 import com.springboot.quitq.utility.JwtUtility;
+import com.springboot.quitq.utility.TokenDenylist;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtility jwtUtility;
     private final MyUserDetailsService myUserDetailsService;
+    private final TokenDenylist tokenDenylist;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -42,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             UserDetails userDetails = myUserDetailsService.loadUserByUsername(username);
 
-            if (jwtUtility.validateToken(token, userDetails.getUsername())) {
+            if (jwtUtility.validateToken(token, userDetails.getUsername()) && !tokenDenylist.isDenied(token)) {
 
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

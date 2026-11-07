@@ -7,6 +7,7 @@ import com.springboot.quitq.exception.InsufficientStockException;
 import com.springboot.quitq.exception.InvalidCallException;
 import com.springboot.quitq.exception.OwnershipException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -27,6 +29,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleResourceNotFoundException(
             ResourceNotFoundException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
 
         return ResponseEntity
                 .badRequest()
@@ -41,6 +44,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String,String>> handleMethodArgumentNotValidException(
             MethodArgumentNotValidException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
+
         Map<String,String> map = new HashMap<>();
 
         BindingResult bindingResult =  e.getBindingResult();
@@ -56,6 +61,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleInvalidCallException(
             InvalidCallException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
 
         return ResponseEntity
                 .badRequest()
@@ -70,6 +76,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleInsufficientStockException(
             InsufficientStockException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
 
         return ResponseEntity
                 .badRequest()
@@ -84,6 +91,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleDuplicateEntryException(
             DuplicateEntryException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
 
         return ResponseEntity
                 .badRequest()
@@ -98,6 +106,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleOwnershipException(
             OwnershipException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
 
         return ResponseEntity
                 .badRequest()
@@ -112,6 +121,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDto> handleInactiveUserException(
             InactiveUserException e
     ){
+        log.error("{} : {}", e.getClass().getSimpleName(), e.getMessage());
 
         return ResponseEntity
                 .status(HttpStatus.PRECONDITION_FAILED)

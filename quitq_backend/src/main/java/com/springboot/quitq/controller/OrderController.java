@@ -3,6 +3,7 @@ package com.springboot.quitq.controller;
 import com.springboot.quitq.dto.response.OrderItemInfoDto;
 import com.springboot.quitq.dto.response.OrderRespDto;
 import com.springboot.quitq.dto.response.OrderTrackingRespDto;
+import com.springboot.quitq.dto.response.SalesReportRespDto;
 import com.springboot.quitq.enums.OrderStatus;
 import com.springboot.quitq.enums.PaymentMethod;
 import com.springboot.quitq.service.OrderService;
@@ -49,6 +50,11 @@ public class OrderController {
                                               @RequestParam(name = "size", required = false, defaultValue = "20") Integer size,
                                               Principal principal){
         return orderService.getBySeller(sellerId, page, size, principal.getName());
+    }
+
+    @GetMapping("/api/order/seller/{sellerId}/sales-report")
+    public List<SalesReportRespDto> getSalesReport(@PathVariable long sellerId, Principal principal){
+        return orderService.getSalesReport(sellerId, principal.getName());
     }
 
     @PutMapping("/api/order/item/{orderItemId}/status")

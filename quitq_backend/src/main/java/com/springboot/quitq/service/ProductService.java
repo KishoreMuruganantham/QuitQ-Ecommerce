@@ -14,6 +14,7 @@ import com.springboot.quitq.repository.CategoryRepository;
 import com.springboot.quitq.repository.ProductRepository;
 import com.springboot.quitq.repository.SellerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductService {
@@ -46,7 +48,7 @@ public class ProductService {
         product.setStatus(ProductStatus.IN_STOCK);
 
         Product saved = productRepository.save(product);
-        System.out.println("record inserted...");
+        log.info("record inserted...");
         return ProductMapper.convertEntityToDto(saved);
     }
 
@@ -115,6 +117,34 @@ public class ProductService {
                 .stream()
                 .map(ProductMapper ::convertEntityToDto)
                 .toList();
+    }
+
+    public ProductRespDto update(long id, ProductDto productDto, String username) {
+
+        Optional<Product> optional = productRepository.findById(id);
+        if(optional.isEmpty())
+            throw new ResourceNotFoundException("Invalid product id");
+
+        Product product = optional.get();
+        String owner = product.getSeller().getUser().getUsername();
+        if(owner == null || !owner.equals(username))
+            throw new OwnershipException("Product does not belong to the logged in user");
+
+        Category category = getCategory(productDto.categoryId());
+
+        product.setName(productDto.name());
+        product.setBrand(productDto.brand());
+        product.setDescription(productDto.description());
+        product.setPrice(productDto.price());
+        if(productDto.stockQty() != null) {
+            product.setStockQty(productDto.stockQty());
+            product.setStatus(productDto.stockQty() > 0 ? ProductStatus.IN_STOCK : ProductStatus.OUT_OF_STOCK);
+        }
+        product.setImageUrl(productDto.imageUrl());
+        product.setCategory(category);
+
+        Product saved = productRepository.save(product);
+        return ProductMapper.convertEntityToDto(saved);
     }
 
     public void updateStatus(long id, String username) {

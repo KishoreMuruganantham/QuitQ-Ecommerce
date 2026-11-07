@@ -3,6 +3,7 @@ package com.springboot.quitq.service;
 import com.springboot.quitq.dto.response.OrderItemInfoDto;
 import com.springboot.quitq.dto.response.OrderRespDto;
 import com.springboot.quitq.dto.response.OrderTrackingRespDto;
+import com.springboot.quitq.dto.response.SalesReportRespDto;
 import com.springboot.quitq.enums.OrderStatus;
 import com.springboot.quitq.enums.PaymentMethod;
 import com.springboot.quitq.enums.PaymentStatus;
@@ -33,6 +34,7 @@ import com.springboot.quitq.repository.ProductRepository;
 import com.springboot.quitq.repository.SellerRepository;
 import com.springboot.quitq.repository.ShippingAddressRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -128,7 +131,7 @@ public class OrderService {
         paymentRepository.save(payment);
 
         cartService.clearCart(customerId);
-        System.out.println("order inserted...");
+        log.info("order inserted...");
         return OrderMapper.convertEntityToDto(savedOrder);
     }
 
@@ -192,6 +195,17 @@ public class OrderService {
             throw new OwnershipException("Seller id does not belong to the logged in user");
 
         return orderItemRepository.getOrdersBySellerId(sellerId, pageable);
+    }
+
+    public List<SalesReportRespDto> getSalesReport(long sellerId, String username) {
+
+        Seller seller = sellerRepository.getByUsername(username);
+        if(seller == null)
+            throw new ResourceNotFoundException("Seller not found for the logged in user");
+        if(!seller.getId().equals(sellerId))
+            throw new OwnershipException("Seller id does not belong to the logged in user");
+
+        return orderItemRepository.getSalesReportBySellerId(sellerId);
     }
 
     public OrderItemInfoDto updateItemStatus(long orderItemId, OrderStatus status, String username) {

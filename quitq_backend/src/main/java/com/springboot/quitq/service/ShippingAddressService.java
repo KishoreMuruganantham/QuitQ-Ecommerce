@@ -10,11 +10,13 @@ import com.springboot.quitq.model.ShippingAddress;
 import com.springboot.quitq.repository.CustomerRepository;
 import com.springboot.quitq.repository.ShippingAddressRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShippingAddressService {
@@ -35,7 +37,7 @@ public class ShippingAddressService {
         address.setCustomer(customer);
 
         ShippingAddress saved = shippingAddressRepository.save(address);
-        System.out.println("record inserted...");
+        log.info("record inserted...");
         return ShippingAddressMapper.convertEntityToDto(saved);
     }
 

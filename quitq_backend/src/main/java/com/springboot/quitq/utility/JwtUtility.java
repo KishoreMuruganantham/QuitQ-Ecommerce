@@ -3,6 +3,7 @@ package com.springboot.quitq.utility;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -14,7 +15,11 @@ import java.util.function.Function;
 @Component
 public class JwtUtility {
 
-    private String SECRET_KEY = "quitqsecretsigningkeyforjwt2026";
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    @Value("${jwt.expiration}")
+    private long expirationMs;
 
     public String generateToken(String username) {
         Map<String, Object> claims = new HashMap<>();
@@ -39,8 +44,8 @@ public class JwtUtility {
                 .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1*24*60*60*1000))
-                .signWith(SignatureAlgorithm.HS256, Base64.getEncoder().encodeToString(SECRET_KEY.getBytes()))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
+                .signWith(SignatureAlgorithm.HS256, Base64.getEncoder().encodeToString(secretKey.getBytes()))
                 .compact();
 
     }
@@ -57,7 +62,7 @@ public class JwtUtility {
     private Claims extractAllClaims(String token) {
         return Jwts
                 .parser()
-                .setSigningKey(Base64.getEncoder().encodeToString(SECRET_KEY.getBytes()))
+                .setSigningKey(Base64.getEncoder().encodeToString(secretKey.getBytes()))
                 .parseClaimsJws(token)
                 .getBody();
     }

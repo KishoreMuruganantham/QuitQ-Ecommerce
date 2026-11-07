@@ -5,11 +5,13 @@ import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.model.Category;
 import com.springboot.quitq.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -18,7 +20,7 @@ public class CategoryService {
 
     public Category insert(Category category) {
         Category saved = categoryRepository.save(category);
-        System.out.println("record inserted...");
+        log.info("record inserted...");
         return saved;
     }
 
@@ -30,7 +32,7 @@ public class CategoryService {
         category.setSeq(categoryDto.seq());
 
         Category saved = categoryRepository.save(category);
-        System.out.println("record inserted...");
+        log.info("record inserted...");
         return saved;
     }
 
@@ -44,7 +46,7 @@ public class CategoryService {
 
     public List<Category> getAll() {
         List<Category> list = categoryRepository.findAll();
-        list.forEach(System.out :: println);
+        log.info("fetched {} records", list.size());
         return list;
     }
 

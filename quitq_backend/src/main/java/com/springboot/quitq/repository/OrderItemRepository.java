@@ -1,6 +1,7 @@
 package com.springboot.quitq.repository;
 
 import com.springboot.quitq.dto.response.OrderItemInfoDto;
+import com.springboot.quitq.dto.response.SalesReportRespDto;
 import com.springboot.quitq.model.OrderItem;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,14 @@ public interface OrderItemRepository extends JpaRepository<OrderItem,Long> {
             where oi.seller.id = ?1
             """)
     List<OrderItemInfoDto> getOrdersBySellerId(Long sellerId, Pageable pageable);
+
+    @Query("""
+            select new com.springboot.quitq.dto.response.SalesReportRespDto(oi.product.name,
+            sum(oi.quantity),sum(oi.totalPrice))
+            from OrderItem oi
+            where oi.seller.id = ?1
+            group by oi.product.name
+            order by sum(oi.totalPrice) desc
+            """)
+    List<SalesReportRespDto> getSalesReportBySellerId(Long sellerId);
 }

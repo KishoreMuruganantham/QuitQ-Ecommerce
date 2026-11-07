@@ -371,6 +371,21 @@
           },
           "response": [],
           "description": "Deletes the login user with the given id. Destructive - deleting a seeded user would break login for that account."
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/logout",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "description": "Signs the JWT out: the token is denied server-side from then on and the call returns {\"message\":\"Logged out successfully\"}. Any authenticated token works - swap {{adminToken}} for {{customerToken}} or {{sellerToken}} to sign that account out instead. Run it last in a folder run: the token used here is invalidated, so re-run the matching login request before re-using that account."
         }
       ]
     },
@@ -496,6 +511,34 @@
           "description": "Adds a product owned by seller 1 (techstore) using the ProductDto body: name, price and stockQty are required (price must be positive, stockQty non-negative); brand, description, imageUrl and categoryId are optional. Returns the created product."
         },
         {
+          "name": "Update product 1",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/api/product/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sony WH-1000XM5\",\n  \"brand\": \"Sony\",\n  \"description\": \"Wireless noise cancelling headphones\",\n  \"price\": 24999.0,\n  \"stockQty\": 25,\n  \"imageUrl\": \"https://example.com/images/sony-wh1000xm5.jpg\",\n  \"categoryId\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "description": "Replaces product 1 (owned by seller 1, techstore) with the ProductDto body: name and price are required (price must be positive); brand, description, stockQty, imageUrl and categoryId are optional. Returns the updated product as ProductRespDto. Requires ROLE_SELLER - run the techstore login first."
+        },
+        {
           "name": "Get product by id",
           "request": {
             "method": "GET",
@@ -521,6 +564,15 @@
           },
           "response": [],
           "description": "Returns the full catalogue (seeded: Sony WH-1000XM5, Dell XPS 15, iPhone 15 Pro, Cotton Shirt, Office Chair). Paged with optional page (default 0) and size (default 20) query params."
+        },
+        {
+          "name": "Get all products - API v1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/v1/product/all"
+          },
+          "response": [],
+          "description": "API versioning example: the same open catalogue read served under the versioned prefix - every /api/** path is also available as /api/v1/**, /api/v2/** and /api/v3/**. No token needed; the response carries the X-API-Version response header (v1, v2 or v3)."
         },
         {
           "name": "Get products by brand",
@@ -826,6 +878,21 @@
           },
           "response": [],
           "description": "Returns every order item that belongs to seller 1's products, with its current status - the seller's view for fulfilment. Paged with optional page (default 0) and size (default 20) query params."
+        },
+        {
+          "name": "Get sales report of seller 1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/order/seller/1/sales-report",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{sellerToken}}"
+              }
+            ]
+          },
+          "response": [],
+          "description": "Returns the sales report for seller 1: one entry per sold product with productName, quantitySold and totalRevenue. Requires ROLE_SELLER - run the techstore login first."
         },
         {
           "name": "Update order item status",
