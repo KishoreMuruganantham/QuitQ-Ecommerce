@@ -41,7 +41,7 @@ public class VersioningApiTest {
 
     @Test
     public void getAllTest_VersionedPath() throws Exception {
-        ProductRespDto productRespDto = new ProductRespDto(100L, "Laptop", "Dell", 50000.0, 10, ProductStatus.IN_STOCK);
+        ProductRespDto productRespDto = new ProductRespDto(100L, "Laptop", "Dell", 50000.0, 10, ProductStatus.IN_STOCK, "laptop.png");
 
         when(productService.getAll(0, 20)).thenReturn(List.of(productRespDto));
 
@@ -68,7 +68,7 @@ public class VersioningApiTest {
 
     @Test
     public void getAllTest_UnversionedPath() throws Exception {
-        ProductRespDto productRespDto = new ProductRespDto(100L, "Laptop", "Dell", 50000.0, 10, ProductStatus.IN_STOCK);
+        ProductRespDto productRespDto = new ProductRespDto(100L, "Laptop", "Dell", 50000.0, 10, ProductStatus.IN_STOCK, "laptop.png");
 
         when(productService.getAll(0, 20)).thenReturn(List.of(productRespDto));
 

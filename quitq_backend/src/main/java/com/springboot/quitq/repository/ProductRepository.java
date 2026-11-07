@@ -22,7 +22,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Query("""
             select p.id as id, p.name as name, p.brand as brand, p.price as price,
-            p.stockQty as stockQty, p.status as status
+            p.stockQty as stockQty, p.status as status, p.imageUrl as imageUrl
             from Product p
             where (?1 IS NULL OR p.brand = ?1)
             AND  (?2 IS NULL OR p.category.id = ?2)
@@ -30,6 +30,9 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
             AND  (?4 IS NULL OR p.price <= ?4)
             """)
     List<ProductRespDto> dynamicFilterProduct(String brand, Long categoryId, Double minPrice, Double maxPrice, Pageable pageable);
+
+    @Query("select p from Product p where p.seller.id = ?1 order by p.id desc")
+    List<Product> findBySeller(long sellerId);
 
     @Query("""
             select p

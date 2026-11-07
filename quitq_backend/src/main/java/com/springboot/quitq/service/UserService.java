@@ -9,8 +9,10 @@ import com.springboot.quitq.exception.InactiveUserException;
 import com.springboot.quitq.exception.ResourceNotFoundException;
 import com.springboot.quitq.mapper.UserMapper;
 import com.springboot.quitq.model.Customer;
+import com.springboot.quitq.model.Seller;
 import com.springboot.quitq.model.User;
 import com.springboot.quitq.repository.CustomerRepository;
+import com.springboot.quitq.repository.SellerRepository;
 import com.springboot.quitq.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final CustomerRepository customerRepository;
+    private final SellerRepository sellerRepository;
     private final PasswordEncoder passwordEncoder;
 
     public void insert(UserDto userDto) {
@@ -85,6 +88,10 @@ public class UserService {
         if(detailsDto.role().equals(Role.ROLE_CUSTOMER)) {
             Customer customer = customerRepository.getByUsername(loggedInUsername);
             return new DetailsDto(customer.getId(), detailsDto.username(), detailsDto.isActive(), detailsDto.role());
+        }
+        if(detailsDto.role().equals(Role.ROLE_SELLER)) {
+            Seller seller = sellerRepository.getByUsername(loggedInUsername);
+            return new DetailsDto(seller.getId(), detailsDto.username(), detailsDto.isActive(), detailsDto.role());
         }
         return detailsDto;
     }

@@ -26,7 +26,8 @@ public class ProductMapper {
                         product.getBrand(),
                         product.getPrice(),
                         product.getStockQty(),
-                        product.getStatus()
+                        product.getStatus(),
+                        product.getImageUrl()
                 );
     }
 
@@ -40,7 +41,10 @@ public class ProductMapper {
                         product.getStockQty(),
                         product.getCategory() .getName(),
                         product.getSeller() .getBusinessName(),
-                        product.getImageUrl()
+                        product.getImageUrl(),
+                        product.getDescription(),
+                        product.getStatus(),
+                        product.getCategory() .getId()
                 );
     }
 }

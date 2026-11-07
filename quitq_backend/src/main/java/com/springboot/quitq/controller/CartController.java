@@ -10,7 +10,6 @@ import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 public class CartController {
 
     private final CartService cartService;

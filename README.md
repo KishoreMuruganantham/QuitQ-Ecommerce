@@ -2,7 +2,7 @@
 
 # QuitQ — E-Commerce Platform
 
-### React + Spring Boot full-stack marketplace — JWT login, role dashboards and a Redux cart over a MySQL 8.0 schema with triggers and JPQL
+### React + Spring Boot full-stack marketplace — a Flipkart-style React UI with JWT login, role-based screens and a Redux cart over a MySQL 8.0 schema with triggers and JPQL
 
 ![License](https://img.shields.io/badge/license-MIT-yellow.svg)
 ![Java](https://img.shields.io/badge/Java-21-E76F00.svg?logo=openjdk&logoColor=white)
@@ -28,7 +28,7 @@ This repository captures the **React front-end, the API layer, plus the design a
 
 | Artefact | Purpose |
 | :-- | :-- |
-| `quitq-ui/` | React 19 + Vite 8 single-page app — JWT login, sign-up, customer cart dashboard and admin shell |
+| `quitq-ui/` | React 19 + Vite 8 single-page app — Flipkart-style login, sign-up, customer catalogue/cart/checkout, seller and admin screens |
 | `quitq_backend/` | Spring Boot 3.5 REST API — **51 endpoints** covering all eight business flows |
 | `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 56 requests, ready to import |
 | `quitq_ecommerce.sql` | Complete, runnable MySQL 8.0 schema with constraints, triggers and seed data |
@@ -42,17 +42,30 @@ The schema is **normalised to 3NF**, fully constrained with foreign keys, and en
 
 ## React UI
 
-`quitq-ui/` is the browser front-end for the API — React 19, Vite 8, react-router 7, Redux Toolkit and axios, styled with Bootstrap 5.3.3 loaded from the CDN (no CSS bundler). It follows the same role model as the API:
+`quitq-ui/` is the browser front-end for the API — React 19, Vite 8, react-router 7 (the `react-router` package), Redux Toolkit and axios, styled with Bootstrap 5.3 and bootstrap-icons loaded from the CDN (no CSS bundler, no TypeScript). It follows the same role model as the API:
 
 | Route | Screen |
 | :-- | :-- |
-| `/` | **Login** — HTTP Basic to `GET /api/auth/login`, then `GET /api/auth/user-details` picks the dashboard from the JWT's role |
-| `/customer/signup` | **Sign-up** — posts a `CustomerDto` to `POST /api/customer/signup` |
-| `/customer/:token` | **CustomerDashboard** — `Stat` (cart totals), `AddToCart` and `CartList`, all fed by Redux (`cartItems`) through the cart APIs |
-| `/admin/:token` | **AdminDashboard** — token-match and role check against `user-details` |
+| `/` | **Login** — Flipkart-style split card; HTTP Basic to `GET /api/auth/login`, then `GET /api/auth/user-details` picks the home screen from the JWT's role |
+| `/customer/signup` | **Sign-up** — split card with a Customer / Seller role toggle, posting to `POST /api/customer/signup` or `POST /api/seller/signup` |
+| `/customer/:token` | **Home** — catalogue: search with live suggestions, category chips, brand and price filters, product grid and pagination |
+| `/customer/:token/product/:id` | **ProductDetail** — image, description, seller, quantity picker, add to cart and buy now |
+| `/customer/:token/cart` | **Cart** — quantity +/-, remove line, PRICE DETAILS panel, place order |
+| `/customer/:token/checkout` | **Checkout** — delivery address add/select, payment method (COD, UPI, Credit Card, Debit Card, Net Banking) |
+| `/customer/:token/order-confirmation/:id` | **OrderConfirmation** — order number |
+| `/customer/:token/orders` | **MyOrders** — order history list |
+| `/customer/:token/orders/:id` | **OrderTracking** — `Placed → Processing → Shipped → Delivered` timeline |
+| `/seller/:token` | **MyProducts** — add / edit / mark out-of-stock / delete |
+| `/seller/:token/orders` | **SellerOrders** — orders received with status updates |
+| `/seller/:token/sales` | **SalesReport** — units, revenue and totals |
+| `/admin/:token` | **Analytics** — user, seller and order counts, orders by status |
+| `/admin/:token/users` | **ManageUsers** — customers & sellers, with delete |
+| `/admin/:token/categories` | **ManageCategories** — add / edit / delete categories |
 | `*` | **PageNotFound** |
 
-The store is a single `CustomerReducer` with three actions — `getCartItems`, `addToCart`, `deleteCartItem` — mirroring the get/post/delete round-trip the API already exposes. `ROLE_SELLER` signs in and stays on the login screen (the seller dashboard is on the roadmap).
+**Look and feel.** The UI copies the Flipkart visual language: a `#2874F0` header with the QuitQ logo (`public/logo-transparent.png`), `#FB641B` primary buttons, a `#F1F3F6` page background, and the Q-mark favicon (`public/favicon.png`). The three layouts (`CustomerLayout`, `SellerLayout`, `AdminLayout`) are role-guarded — each compares the `:token` URL parameter against the stored JWT and the expected role, and bounces mismatches back to `/` — so every screen under a role prefix is protected by the route tree itself. The token travels as a URL parameter, the pattern the training module uses. Logout posts to `POST /api/auth/logout`, which denies the token server-side before localStorage is cleared.
+
+The store is a single `CustomerReducer` with four actions — `getCartItems`, `addToCart`, `updateQuantity`, `deleteCartItem` — mirroring the get/post/put/delete round-trip the cart APIs already expose.
 
 ---
 
@@ -151,7 +164,7 @@ Spring Security is wired the way the trainer's module teaches it:
 
 - **`SecurityConfig`** — a `SecurityFilterChain` with **42 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
 - **Login** — `GET /api/auth/login` with an HTTP Basic header returns `TokenDto` (`token`, `expiryTime`, `issueTime`). The JWT (HS256, 24-hour expiry, subject = username) is minted by `JwtUtility`.
-- **User details** — `GET /api/auth/user-details` (authenticated) returns `DetailsDto` (`id`, `username`, `isActive`, `role`); for `ROLE_CUSTOMER` the id is swapped to the customer id the cart APIs need, and a disabled account raises `InactiveUserException` → HTTP 412. The UI calls it right after login to pick the dashboard.
+- **User details** — `GET /api/auth/user-details` (authenticated) returns `DetailsDto` (`id`, `username`, `isActive`, `role`); for `ROLE_CUSTOMER` the id is swapped to the customer id the cart APIs need, and a disabled account raises `InactiveUserException` → HTTP 412. The UI calls it right after login to pick the role's home screen.
 - **CORS** — `@CrossOrigin(origins = "http://localhost:5173")` on `AuthController`, `CustomerController` and `CartController`, the three controllers the React UI talks to.
 - **`JwtFilter`** — a `OncePerRequestFilter` registered before Spring's `UsernamePasswordAuthenticationFilter`; it reads `Authorization: Bearer <token>`, validates it, loads the user and pushes the `Role` authorities into the `SecurityContext`.
 - **Role rules** — signups, the user bootstrap and all catalogue/category reads stay open; logout accepts any authenticated JWT; cart, address, checkout, payment and customer reads require `ROLE_CUSTOMER`; product mutations and the seller order screens require `ROLE_SELLER`; analytics, user/seller management and category management require `ROLE_ADMIN`.
@@ -197,7 +210,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 
 | Piece | Count | Notes |
 | :-- | :-- | :-- |
-| React UI | 8 components | `quitq-ui/` — login, sign-up, customer dashboard (stat / add / list), admin shell, page-not-found |
+| React UI | 20 components | `quitq-ui/` — login, sign-up, customer catalogue / product / cart / checkout / orders, seller and admin screens, role layouts, page-not-found |
 | Controllers | 11 | 51 endpoints, no class-level `@RequestMapping` |
 | Services | 11 | Business rules; checkout is a single `@Transactional` method |
 | Repositories | 12 | Derived queries plus four JPQL `@Query` methods — dynamic filter, seller join, group-by stats, LEFT JOIN unpurchased lookup |
@@ -207,7 +220,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 | Enums | 5 | `Role`, `ProductStatus`, `OrderStatus`, `PaymentMethod`, `PaymentStatus` |
 | Exceptions | 6 + handler | Custom exceptions (incl. `OwnershipException`, `InactiveUserException`) + `GlobalExceptionHandler` |
 | Security | 42 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks, CORS for the UI |
-| Tests | 14 | Mockito unit tests across five service classes (`@ExtendWith(MockitoExtension.class)`) |
+| Tests | 39 | Unit tests across twelve classes — six `@ExtendWith(MockitoExtension.class)` service suites plus controller and filter tests (`mvnw.cmd test`) |
 
 > Catalogue reads are open to every caller (`permitAll`); write endpoints need a JWT with the matching role, and every customer/seller operation is additionally checked against the token's owner.
 
@@ -408,7 +421,7 @@ cd quitq_backend
 ./mvnw spring-boot:run            # macOS / Linux
 ```
 
-Wait for `Started QuitqBackendApplication` (about 40–50 seconds on first boot while Hibernate maps the entities onto the existing tables).
+Wait for `Started QuitqBackendApplication` (about 40–50 seconds on first boot while Hibernate maps the entities onto the existing tables). Run the test suite with `.\mvnw.cmd test` (`./mvnw test` on macOS / Linux) — 39 tests across twelve classes.
 
 ### 5. Run the React UI
 
@@ -420,7 +433,7 @@ npm install        # first time only
 npm run dev
 ```
 
-Open **http://localhost:5173** — the login screen appears. Sign in with the seeded accounts below; `admin` lands on the admin dashboard, `john_doe` on the customer cart dashboard. Start the API first — while the backend is still booting the login form reports *Invalid Credentials*, because the request never reaches the server.
+Open **http://localhost:5173** — the Flipkart-style login screen appears. Sign in with the seeded accounts below; `admin` lands on Analytics, `john_doe` on the product catalogue, and `techstore` / `fashionhub` on My Products. Start the API first — while the backend is still booting the login form reports *Invalid Credentials*, because the request never reaches the server. `npm run build` creates a production bundle and `npm run lint` runs ESLint.
 
 ### 6. Verify it is live
 
@@ -452,7 +465,7 @@ Open `quitq_ecommerce.mwb` in MySQL Workbench to explore or edit the EER diagram
 
 > Passwords are stored as **BCrypt hashes** (`$2a$10$…`) and verified by Spring Security's `DaoAuthenticationProvider`; only rows with `users.is_active = 1` can log in. Every signup encodes its password on the way in.
 
-The same accounts drive the React UI at `http://localhost:5173`: `admin` opens the AdminDashboard, `john_doe` opens the customer dashboard with the seeded Sony line in the cart (Rs. 24,999), and the seller accounts sign in but stay on the login screen — the seller dashboard is on the roadmap.
+The same accounts drive the React UI at `http://localhost:5173`: `admin` opens Analytics, `john_doe` opens the catalogue with the seeded Sony line already in the cart (Rs. 24,999), and `techstore` / `fashionhub` open My Products with their listings and orders.
 
 ### Suggested demo walkthrough
 
@@ -529,17 +542,21 @@ QuitQ-Ecommerce/
 │           └── QuitqBackendApplication.java
 ├── quitq-ui/                        # React 19 + Vite 8 single-page app
 │   ├── config.js                    # API_SERVER_URL_DEV / API_SERVER_URL_PROD
-│   ├── index.html                   # Bootstrap 5.3.3 CDN
+│   ├── index.html                   # Bootstrap 5.3 + bootstrap-icons CDN · Q-mark favicon
+│   ├── public/                      # logo.png · logo-transparent.png · favicon.png
 │   ├── vite.config.js · eslint.config.js · package.json
 │   └── src/
 │       ├── main.jsx                 # BrowserRouter + Redux Provider
-│       ├── App.jsx                  # the five routes
+│       ├── App.jsx                  # role-grouped route tree (customer / seller / admin)
+│       ├── index.css · App.css · styles/   # Flipkart theme (#2874F0 header, #FB641B buttons)
 │       ├── components/
-│       │   ├── auth/Login.jsx       # Basic login → JWT → user-details → role switch
-│       │   ├── customer/            # SignUp · CustomerDashboard · Stat · AddToCart · CartList
-│       │   ├── admin/AdminDashboard.jsx
+│       │   ├── auth/Login.jsx       # split card · Basic login → JWT → user-details → role switch
+│       │   ├── layout/              # Navbar · CustomerLayout · SellerLayout · AdminLayout (role guards)
+│       │   ├── customer/            # SignUp · Home · ProductDetail · Cart · Checkout · OrderConfirmation · MyOrders · OrderTracking
+│       │   ├── seller/              # MyProducts · SellerOrders · SalesReport
+│       │   ├── admin/               # Analytics · ManageUsers · ManageCategories
 │       │   └── PageNotFound.jsx
-│       └── store/                   # store.js · CustomerAction.js · CustomerReducer.js
+│       └── store/                   # store.js · actions/CustomerAction.js · reducers/CustomerReducer.js
 ├── postman/
 │   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 56 requests
 └── docs/
@@ -557,10 +574,10 @@ QuitQ-Ecommerce/
 - [x] JWT authentication, BCrypt passwords and role/ownership authorisation (Spring Security)
 - [ ] API documentation with Swagger / OpenAPI
 - [ ] Request logging and correlation ids
-- [x] React front-end — JWT login, sign-up, customer cart dashboard and admin shell (`quitq-ui/`)
+- [x] React front-end — Flipkart-style UI: login, sign-up, customer catalogue / cart / checkout, seller and admin screens (`quitq-ui/`)
 - [ ] Order status state machine with optimistic concurrency control
 - [ ] Payment gateway integration and webhook handling
-- [x] Unit tests with Mockito — 14 tests across five service classes
+- [x] Unit tests with Mockito — 39 tests across twelve classes
 - [x] SonarCloud static analysis — quality gate passed, zero open issues
 - [ ] CI pipeline with schema migration validation
 

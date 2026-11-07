@@ -119,6 +119,20 @@ public class ProductService {
                 .toList();
     }
 
+    public List<ProductInfoDto> getBySeller(long sellerId, String username) {
+
+        Seller seller = sellerRepository.getByUsername(username);
+        if(seller == null)
+            throw new ResourceNotFoundException("Seller not found for the logged in user");
+        if(!seller.getId().equals(sellerId))
+            throw new OwnershipException("Seller id does not belong to the logged in user");
+
+        return productRepository.findBySeller(sellerId)
+                .stream()
+                .map(ProductMapper ::convertEntityToInfoDto)
+                .toList();
+    }
+
     public ProductRespDto update(long id, ProductDto productDto, String username) {
 
         Optional<Product> optional = productRepository.findById(id);

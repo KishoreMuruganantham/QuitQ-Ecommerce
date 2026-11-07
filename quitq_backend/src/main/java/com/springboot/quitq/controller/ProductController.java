@@ -35,6 +35,11 @@ public class ProductController {
         return productService.getAll(page, size);
     }
 
+    @GetMapping("/api/product/seller/{sellerId}")
+    public List<ProductInfoDto> getBySeller(@PathVariable long sellerId, Principal principal){
+        return productService.getBySeller(sellerId, principal.getName());
+    }
+
     @GetMapping("/api/product/brand")
     public List<ProductRespDto> getByBrand(@RequestParam(name = "brand") String brand,
                                            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,

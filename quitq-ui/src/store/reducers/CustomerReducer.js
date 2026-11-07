@@ -18,6 +18,11 @@ const CustomerReducer =(state = initialState,action)=>{
                 ...state, 
                 cartItems : [...state.cartItems.filter(c=> c.cartItemId !== action.payload)]
             } 
+        case 'UPDATE_CART_ITEM' :
+            return{
+                ...state, 
+                cartItems : state.cartItems.map(c=> c.cartItemId === action.payload.cartItemId ? action.payload : c)
+            } 
               
         default: 
             return state

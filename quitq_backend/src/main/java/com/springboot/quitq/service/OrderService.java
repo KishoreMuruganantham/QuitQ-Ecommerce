@@ -222,6 +222,27 @@ public class OrderService {
         orderItem.setStatus(status);
 
         OrderItem saved = orderItemRepository.save(orderItem);
+
+        Orders orders = orderItem.getOrders();
+        orders.setOrderStatus(status);
+        ordersRepository.save(orders);
+
+        OrderTracking tracking = new OrderTracking();
+        tracking.setOrders(orders);
+        tracking.setStatus(status.name());
+        tracking.setRemarks(remarksFor(status));
+        orderTrackingRepository.save(tracking);
+
         return OrderMapper.convertOrderItemToInfoDto(saved);
+    }
+
+    private String remarksFor(OrderStatus status) {
+        return switch (status) {
+            case PLACED -> "Order placed successfully";
+            case PROCESSING -> "Seller is processing the order";
+            case SHIPPED -> "Order shipped";
+            case DELIVERED -> "Order delivered";
+            case CANCELLED -> "Order cancelled";
+        };
     }
 }

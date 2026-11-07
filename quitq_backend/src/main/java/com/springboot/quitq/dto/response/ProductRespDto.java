@@ -8,6 +8,7 @@ public record ProductRespDto(
         String brand,
         Double price,
         Integer stockQty,
-        ProductStatus status
+        ProductStatus status,
+        String imageUrl
 ) {
 }

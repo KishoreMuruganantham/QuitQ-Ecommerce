@@ -1,5 +1,6 @@
 package com.springboot.quitq.service;
 
+import com.springboot.quitq.dto.response.OrderItemInfoDto;
 import com.springboot.quitq.dto.response.OrderRespDto;
 import com.springboot.quitq.enums.OrderStatus;
 import com.springboot.quitq.enums.PaymentMethod;
@@ -12,10 +13,12 @@ import com.springboot.quitq.model.CartItem;
 import com.springboot.quitq.model.Customer;
 import com.springboot.quitq.model.OrderItem;
 import com.springboot.quitq.model.Orders;
+import com.springboot.quitq.model.OrderTracking;
 import com.springboot.quitq.model.Payment;
 import com.springboot.quitq.model.Product;
 import com.springboot.quitq.model.Seller;
 import com.springboot.quitq.model.ShippingAddress;
+import com.springboot.quitq.model.User;
 import com.springboot.quitq.repository.CartItemRepository;
 import com.springboot.quitq.repository.CartRepository;
 import com.springboot.quitq.repository.CustomerRepository;
@@ -229,5 +232,57 @@ public class OrderServiceTest {
 
         verifyNoMoreInteractions(customerRepository);
         verifyNoMoreInteractions(ordersRepository);
+    }
+
+    @Test
+    public void updateItemStatusTest() {
+        String username = "seller1";
+
+        User user = new User();
+        user.setUsername(username);
+
+        Seller seller = new Seller();
+        seller.setId(1L);
+        seller.setUser(user);
+
+        Customer customer = new Customer();
+        customer.setId(1L);
+        customer.setName("John Doe");
+
+        Orders orders = new Orders();
+        orders.setId(2L);
+        orders.setOrderNumber("Q123");
+        orders.setCustomer(customer);
+        orders.setOrderStatus(OrderStatus.PLACED);
+
+        Product product = new Product();
+        product.setId(100L);
+        product.setName("Laptop");
+
+        OrderItem orderItem = new OrderItem();
+        orderItem.setId(9L);
+        orderItem.setOrders(orders);
+        orderItem.setSeller(seller);
+        orderItem.setProduct(product);
+        orderItem.setQuantity(1);
+        orderItem.setTotalPrice(500.0);
+        orderItem.setStatus(OrderStatus.PLACED);
+
+        when(orderItemRepository.findById(9L)).thenReturn(Optional.of(orderItem));
+        when(orderItemRepository.save(any(OrderItem.class))).thenReturn(orderItem);
+
+        OrderItemInfoDto result = orderService.updateItemStatus(9L, OrderStatus.DELIVERED, username);
+
+        assertEquals(OrderStatus.DELIVERED, result.status());
+        assertEquals("Q123", result.orderNumber());
+
+        verify(orderItemRepository, times(1)).save(argThat((OrderItem item) ->
+                item.getStatus() == OrderStatus.DELIVERED));
+        verify(ordersRepository, times(1)).save(argThat((Orders order) ->
+                order.getOrderStatus() == OrderStatus.DELIVERED));
+        verify(orderTrackingRepository, times(1)).save(argThat((OrderTracking tracking) ->
+                tracking.getOrders().getId().equals(2L)
+                        && tracking.getStatus().equals("DELIVERED")
+                        && tracking.getRemarks().equals("Order delivered")));
     }
 }

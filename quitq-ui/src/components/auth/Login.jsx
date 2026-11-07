@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Link, useNavigate } from "react-router"
+import { useEffect, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router"
 import { API_SERVER_URL_DEV } from "../../../config"
 import axios from "axios"
 
@@ -12,19 +12,39 @@ function Login() {
     const apiUrl = API_SERVER_URL_DEV + '/api/auth/login'
     const userDetailsUrl = API_SERVER_URL_DEV + '/api/auth/user-details'
 
-    const navigate =  useNavigate()
+    const navigate = useNavigate()
+    const location = useLocation()
+
+    // Auto redirect already logged-in users to their dashboard (only from the login page)
+    useEffect(() => {
+        const token = localStorage.getItem('token')
+        const role = localStorage.getItem('role')
+        if (location.pathname === '/' && token && role) {
+            switch (role) {
+                case 'ROLE_CUSTOMER':
+                    navigate(`/customer/${token}`)
+                    break;
+                case 'ROLE_SELLER':
+                    navigate(`/seller/${token}`)
+                    break;
+                case 'ROLE_ADMIN':
+                    navigate(`/admin/${token}`)
+                    break;
+                default:
+                    break;
+            }
+        }
+    }, [location.pathname, navigate])
+
     const processLogin = async (e) => {
         e.preventDefault()
         // Step 1. Fetch the jwt token
         const token = 'Basic ' + window.btoa(username + ':' + password)
-        // console.log(token)
         try {
             const response = await axios.get(apiUrl, {
                 headers: { 'Authorization': token }
             })
 
-            // console.log(response)
-            // console.log(response.data.token)
             localStorage.setItem('token', response.data.token)
             localStorage.setItem('username', username)
 
@@ -32,19 +52,18 @@ function Login() {
             const resp = await axios.get(userDetailsUrl, {
                 headers: { 'Authorization': 'Bearer ' + response.data.token }
             })
-            // console.log(resp)
             localStorage.setItem('role', resp.data.role)
             localStorage.setItem('id', resp.data.id)
             // Based on the role of this user load appropriate dashboard
-            switch(resp.data.role){
-                case 'ROLE_CUSTOMER' :
+            switch (resp.data.role) {
+                case 'ROLE_CUSTOMER':
                     navigate(`/customer/${response.data.token}`)
                     break;
-                case 'ROLE_ADMIN' :
+                case 'ROLE_ADMIN':
                     navigate(`/admin/${response.data.token}`)
                     break;
-                case 'ROLE_SELLER' :
-                    console.log('go to seller dashboard')
+                case 'ROLE_SELLER':
+                    navigate(`/seller/${response.data.token}`)
                     break;
                 default:
                     setErrMsg('Something went wrong...')
@@ -52,13 +71,14 @@ function Login() {
             }
         }
         catch (err) {
-            if (err?.response?.data === undefined) {
-                setErrMsg("Invalid Credentials")
+            if (err.response) {
+                setErrMsg(err?.response?.data?.message || "Invalid Credentials")
+                setErrComment(err?.response?.data?.comments)
             }
             else {
-                console.log(err?.response?.data)
-                setErrMsg(err?.response?.data?.message)
-                setErrComment(err?.response?.data?.comments)
+                // No response at all -> network / CORS failure, not bad credentials
+                setErrMsg("Unable to reach server. Please try again.")
+                setErrComment("")
             }
         }
     }
@@ -75,9 +95,10 @@ function Login() {
                                 {/* <!-- Left blue panel --> */}
                                 <div className="col-md-4 d-flex flex-column justify-content-center text-white p-4"
                                     style={{ backgroundColor: '#2874F0', minHeight: 300 }}>
-                                    <h3 className="fw-bold mb-2">Login</h3>
+                                    <img src="/logo-transparent.png" alt="QuitQ" style={{ height: 42 }} />
+                                    <h3 className="fw-bold mb-2 mt-3">Login</h3>
                                     <p className="mb-0" style={{ fontSize: '0.95rem', lineHeight: 1.5 }}>
-                                        Get access to your Orders, Wishlist and Recommendations
+                                        Get access to your Orders and Recommendations
                                     </p>
                                 </div>
 
@@ -98,21 +119,16 @@ function Login() {
                                     <form onSubmit={(e) => processLogin(e)}>
                                         {/* <!-- Username Field --> */}
                                         <div className="mb-4">
-                                            <input type="text" className="form-control border-0 border-bottom rounded-0 px-0"
-                                                style={{ backgroundColor: 'transparent', fontSize: '1rem' }}
+                                            <input type="text" className="form-control border-0 border-bottom rounded-0 px-0 fk-auth-input"
                                                 placeholder="Enter Username" required
                                                 onChange={(e) => setUsername(e.target.value)} />
                                         </div>
 
                                         {/* <!-- Password Field --> */}
                                         <div className="mb-4">
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <input type="password" className="form-control border-0 border-bottom rounded-0 px-0 me-3"
-                                                    style={{ backgroundColor: 'transparent', fontSize: '1rem' }}
-                                                    placeholder="Enter Password" required
-                                                    onChange={(e) => setPassword(e.target.value)} />
-                                                <a href="#" className="text-decoration-none fw-semibold" style={{ color: '#FB641B', whiteSpace: 'nowrap', fontSize: '0.9rem' }}>Forgot?</a>
-                                            </div>
+                                            <input type="password" className="form-control border-0 border-bottom rounded-0 px-0 fk-auth-input"
+                                                placeholder="Enter Password" required
+                                                onChange={(e) => setPassword(e.target.value)} />
                                         </div>
 
                                         {/* <!-- Submit Button --> */}

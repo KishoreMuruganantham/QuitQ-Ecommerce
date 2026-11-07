@@ -1,5 +1,7 @@
 package com.springboot.quitq.dto.response;
 
+import com.springboot.quitq.enums.ProductStatus;
+
 public record ProductInfoDto(
         Long id,
         String name,
@@ -8,6 +10,9 @@ public record ProductInfoDto(
         Integer stockQty,
         String categoryName,
         String sellerName,
-        String imageUrl
+        String imageUrl,
+        String description,
+        ProductStatus status,
+        Long categoryId
 ) {
 }
