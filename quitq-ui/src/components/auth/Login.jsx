@@ -129,6 +129,9 @@ function Login() {
                                             <input type="password" className="form-control border-0 border-bottom rounded-0 px-0 fk-auth-input"
                                                 placeholder="Enter Password" required
                                                 onChange={(e) => setPassword(e.target.value)} />
+                                            <div className="text-end mt-2">
+                                                <Link to="/forgot-password" className="fw-semibold text-decoration-none" style={{ color: '#2874F0', fontSize: '0.85rem' }}>Forgot?</Link>
+                                            </div>
                                         </div>
 
                                         {/* <!-- Submit Button --> */}

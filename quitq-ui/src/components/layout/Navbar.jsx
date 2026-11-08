@@ -2,12 +2,12 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate } from "react-router"
 import axios from "axios"
 import { API_SERVER_URL_DEV } from "../../../config"
+import ProfileDropdown from "./ProfileDropdown"
 
 function Navbar() {
     const navigate = useNavigate()
     const token = localStorage.getItem('token')
     const role = localStorage.getItem('role')
-    const username = localStorage.getItem('username')
 
     const [keyword, setKeyword] = useState("")
     const [suggestions, setSuggestions] = useState([])
@@ -16,18 +16,6 @@ function Navbar() {
     const rootPath = role === 'ROLE_SELLER' ? `/seller/${token}`
         : role === 'ROLE_ADMIN' ? `/admin/${token}`
             : `/customer/${token}`
-
-    const logout = async () => {
-        try {
-            await axios.post(API_SERVER_URL_DEV + '/api/auth/logout', null, {
-                headers: { 'Authorization': 'Bearer ' + token }
-            })
-        } catch {
-            // token may already be invalid, still clear the session
-        }
-        localStorage.clear()
-        navigate("/")
-    }
 
     const onKeywordChange = (e) => {
         const value = e.target.value
@@ -70,7 +58,7 @@ function Navbar() {
     }
 
     return (
-        <nav className="navbar navbar-expand-lg" style={{ backgroundColor: '#2874F0', padding: '8px 0' }}>
+        <nav className="navbar navbar-expand-lg fk-nav-shell" style={{ backgroundColor: '#2874F0', padding: '8px 0' }}>
             <div className="d-flex align-items-center gap-2 gap-md-3 flex-wrap px-3 px-md-4 mx-auto"
                 style={{ maxWidth: 1280, width: '100%' }}>
 
@@ -105,35 +93,20 @@ function Navbar() {
                     </div>
                 )}
 
-                {/* <!-- Role based links --> */}
+                {/* <!-- Spacer for roles without search --> */}
+                {role !== 'ROLE_CUSTOMER' && <div className="flex-grow-1"></div>}
+
+                {/* <!-- Same line: Home, Profile, Cart (Flipkart style) --> */}
                 <div className="d-flex align-items-center ms-auto gap-1 flex-wrap">
+                    <Link className="fk-nav-link" to={rootPath}>
+                        <i className="bi bi-house-door me-1"></i>Home
+                    </Link>
+                    <ProfileDropdown />
                     {role === 'ROLE_CUSTOMER' && (
-                        <>
-                            <Link className="fk-nav-link" to={`/customer/${token}`}>Home</Link>
-                            <Link className="fk-nav-link" to={`/customer/${token}/orders`}>My Orders</Link>
-                            <Link className="fk-nav-link" to={`/customer/${token}/cart`}>
-                                <i className="bi bi-cart3 me-1"></i>Cart
-                            </Link>
-                        </>
+                        <Link className="fk-nav-link" to={`/customer/${token}/cart`}>
+                            <i className="bi bi-cart3 me-1"></i>Cart
+                        </Link>
                     )}
-                    {role === 'ROLE_SELLER' && (
-                        <>
-                            <Link className="fk-nav-link" to={`/seller/${token}`}>My Products</Link>
-                            <Link className="fk-nav-link" to={`/seller/${token}/orders`}>Orders</Link>
-                            <Link className="fk-nav-link" to={`/seller/${token}/sales`}>Sales Report</Link>
-                        </>
-                    )}
-                    {role === 'ROLE_ADMIN' && (
-                        <>
-                            <Link className="fk-nav-link" to={`/admin/${token}`}>Analytics</Link>
-                            <Link className="fk-nav-link" to={`/admin/${token}/users`}>Users</Link>
-                            <Link className="fk-nav-link" to={`/admin/${token}/categories`}>Categories</Link>
-                        </>
-                    )}
-                    <span className="fk-nav-link d-none d-sm-inline" style={{ opacity: 0.85 }}>
-                        Hi, {username}
-                    </span>
-                    <button className="fk-nav-link" onClick={() => logout()}>Logout</button>
                 </div>
             </div>
         </nav>

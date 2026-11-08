@@ -100,6 +100,15 @@ function ProductDetail() {
                 <>
                     {backLink}
 
+                    {/* <!-- Breadcrumb --> */}
+                    <nav className="fk-crumb mb-2">
+                        <Link to={`/customer/${token}`}>Home</Link>
+                        {' / '}
+                        <span>{product.categoryName}</span>
+                        {' / '}
+                        <span className="fk-crumb-current">{product.name}</span>
+                    </nav>
+
                     {/* <!-- Product main card --> */}
                     <div className="fk-card p-4">
                         <div className="row g-4">
@@ -107,7 +116,7 @@ function ProductDetail() {
                             {/* <!-- Image --> */}
                             <div className="col-md-5">
                                 {product.imageUrl ? (
-                                    <img src={product.imageUrl} alt={product.name}
+                                    <img className="fk-detail-img" src={product.imageUrl} alt={product.name}
                                         style={{ width: '100%', height: 360, objectFit: 'contain' }} />
                                 ) : (
                                     <div className="d-flex align-items-center justify-content-center"

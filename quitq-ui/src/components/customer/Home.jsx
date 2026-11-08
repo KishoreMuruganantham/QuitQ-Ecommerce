@@ -3,6 +3,16 @@ import { useNavigate, useParams, useSearchParams } from "react-router"
 import axios from "axios"
 import { API_SERVER_URL_DEV } from "../../../config"
 
+// Category icon by name (case-insensitive contains)
+const categoryIcon = (name) => {
+    const n = String(name || '').toLowerCase()
+    if (n.includes('electronics')) return 'bi-tv'
+    if (n.includes('mobile')) return 'bi-phone'
+    if (n.includes('fashion')) return 'bi-handbag'
+    if (n.includes('home')) return 'bi-house'
+    return 'bi-tag'
+}
+
 function Home() {
     const { token } = useParams()
     const navigate = useNavigate()
@@ -15,14 +25,14 @@ function Home() {
     const [errMsg, setErrMsg] = useState("")
     const [page, setPage] = useState(0)
     const [filters, setFilters] = useState({ brand: "", minPrice: "", maxPrice: "", categoryId: "" })
+    const [showFilters, setShowFilters] = useState(false)
 
-    // Draft values for the sidebar inputs (applied only when Apply is clicked)
+    // Draft values for the filter panel inputs (applied only when Apply is clicked)
     const [brandInput, setBrandInput] = useState("")
     const [minInput, setMinInput] = useState("")
     const [maxInput, setMaxInput] = useState("")
 
-    const chipStyle = { backgroundColor: '#fff', border: '1px solid #e0e0e0', color: '#212121', fontSize: 13 }
-    const chipActiveStyle = { backgroundColor: '#2874F0', border: '1px solid #2874F0', color: '#fff', fontSize: 13 }
+    const activeFilters = [filters.brand, filters.minPrice !== "", filters.maxPrice !== ""].filter(Boolean).length
 
     // Category strip loads once
     useEffect(() => {
@@ -74,6 +84,8 @@ function Home() {
     const selectCategory = (categoryId) => {
         setFilters((prev) => ({ ...prev, categoryId }))
         setPage(0)
+        // Choosing a category while a keyword search is active clears the search
+        if (q) navigate(`/customer/${token}`)
     }
 
     const applyBrand = () => {
@@ -110,86 +122,110 @@ function Home() {
     return (
         <div className="container-fluid px-4 py-4" style={{ maxWidth: 1280 }}>
 
-            {/* <!-- Category chips --> */}
-            <div className="fk-card p-3 mb-3 d-flex align-items-center gap-2 flex-wrap">
-                <button type="button" className="btn btn-sm rounded-pill px-3"
-                    style={!filters.categoryId ? chipActiveStyle : chipStyle}
-                    onClick={() => selectCategory("")}>All</button>
-                {categories.map((c) => (
-                    <button type="button" key={c.id} className="btn btn-sm rounded-pill px-3"
-                        style={filters.categoryId === c.id ? chipActiveStyle : chipStyle}
-                        onClick={() => selectCategory(c.id)}>{c.name}</button>
-                ))}
+            {/* <!-- Category circles + Filters button --> */}
+            <div className="fk-card p-3 mb-3 d-flex align-items-center gap-3 flex-wrap">
+                <div className="d-flex flex-nowrap overflow-x-auto gap-1 flex-grow-1">
+                    <button type="button"
+                        className={`fk-cat fk-cat-tint-5 flex-shrink-0 ${!filters.categoryId ? 'fk-cat-active' : ''}`}
+                        onClick={() => selectCategory("")}>
+                        <span className="fk-cat-circle"><i className="bi bi-grid"></i></span>
+                        <span className="fk-cat-label">All</span>
+                    </button>
+                    {categories.map((c, i) => (
+                        <button type="button" key={c.id}
+                            className={`fk-cat fk-cat-tint-${(i % 4) + 1} flex-shrink-0 ${filters.categoryId === c.id ? 'fk-cat-active' : ''}`}
+                            onClick={() => selectCategory(c.id)}>
+                            <span className="fk-cat-circle"><i className={`bi ${categoryIcon(c.name)}`}></i></span>
+                            <span className="fk-cat-label">{c.name}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* <!-- Filters are opt-in: hidden while a keyword search is active --> */}
+                {!q && (
+                    <button type="button"
+                        className={`fk-btn-filter ${showFilters ? 'fk-btn-filter-active' : ''}`}
+                        onClick={() => setShowFilters((prev) => !prev)}>
+                        <i className="bi bi-funnel"></i>Filters
+                        {activeFilters > 0 && (
+                            <span className="fk-badge fk-badge-orange">{activeFilters}</span>
+                        )}
+                    </button>
+                )}
             </div>
 
-            <div className="row g-3">
+            {/* <!-- Collapsible filter panel --> */}
+            {showFilters && !q && (
+                <div className="fk-card p-3 mb-3">
+                    <div className="row g-4">
 
-                {/* <!-- Left: filters sidebar (not used by keyword search) --> */}
-                {!q && (
-                    <div className="col-lg-3">
-                        <div className="fk-card">
-                            <div className="fk-card-header">Filters</div>
-                            <div className="p-3">
-
-                                {/* <!-- Brand filter --> */}
-                                <label className="fk-label" htmlFor="brandFilter">BRAND</label>
-                                <input id="brandFilter" type="text" className="fk-input" placeholder="e.g. Apple"
-                                    value={brandInput} onChange={(e) => setBrandInput(e.target.value)} />
-                                <div className="row g-2 mt-1">
-                                    <div className="col">
-                                        <button type="button" className="fk-btn-blue" onClick={() => applyBrand()}>Apply</button>
-                                    </div>
-                                    <div className="col">
-                                        <button type="button" className="fk-btn-outline" onClick={() => clearBrand()}>Clear</button>
-                                    </div>
+                        {/* <!-- Brand filter --> */}
+                        <div className="col-md-6 col-lg-4">
+                            <label className="fk-label" htmlFor="brandFilter">BRAND</label>
+                            <input id="brandFilter" type="text" className="fk-input" placeholder="e.g. Apple"
+                                value={brandInput} onChange={(e) => setBrandInput(e.target.value)} />
+                            <div className="row g-2 mt-1">
+                                <div className="col">
+                                    <button type="button" className="fk-btn-blue" onClick={() => applyBrand()}>Apply</button>
                                 </div>
-
-                                {/* <!-- Price filter --> */}
-                                <div className="border-top mt-4 pt-3">
-                                    <label className="fk-label" htmlFor="minPriceFilter">PRICE</label>
-                                    <div className="row g-2">
-                                        <div className="col">
-                                            <input id="minPriceFilter" type="number" className="fk-input" placeholder="Min" min="0"
-                                                value={minInput} onChange={(e) => setMinInput(e.target.value)} />
-                                        </div>
-                                        <div className="col">
-                                            <input id="maxPriceFilter" type="number" className="fk-input" placeholder="Max" min="0"
-                                                value={maxInput} onChange={(e) => setMaxInput(e.target.value)} />
-                                        </div>
-                                    </div>
-                                    <div className="row g-2 mt-1">
-                                        <div className="col">
-                                            <button type="button" className="fk-btn-blue" onClick={() => applyPrice()}>Apply</button>
-                                        </div>
-                                        <div className="col">
-                                            <button type="button" className="fk-btn-outline" onClick={() => clearPrice()}>Clear</button>
-                                        </div>
-                                    </div>
+                                <div className="col">
+                                    <button type="button" className="fk-btn-outline" onClick={() => clearBrand()}>Clear</button>
                                 </div>
-
                             </div>
                         </div>
+
+                        {/* <!-- Price filter --> */}
+                        <div className="col-md-6 col-lg-4">
+                            <label className="fk-label" htmlFor="minPriceFilter">PRICE</label>
+                            <div className="row g-2">
+                                <div className="col">
+                                    <input id="minPriceFilter" type="number" className="fk-input" placeholder="Min" min="0"
+                                        value={minInput} onChange={(e) => setMinInput(e.target.value)} />
+                                </div>
+                                <div className="col">
+                                    <input id="maxPriceFilter" type="number" className="fk-input" placeholder="Max" min="0"
+                                        value={maxInput} onChange={(e) => setMaxInput(e.target.value)} />
+                                </div>
+                            </div>
+                            <div className="row g-2 mt-1">
+                                <div className="col">
+                                    <button type="button" className="fk-btn-blue" onClick={() => applyPrice()}>Apply</button>
+                                </div>
+                                <div className="col">
+                                    <button type="button" className="fk-btn-outline" onClick={() => clearPrice()}>Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
+                </div>
+            )}
+
+            {/* <!-- Results header --> */}
+            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h5 className="mb-0 fw-semibold fk-section-title">
+                    {q ? <>Results for '{q}'</> : 'Products'}
+                </h5>
+                {q && (
+                    <button type="button" className="fk-btn-outline w-auto"
+                        onClick={() => clearSearch()} title="Clear search">
+                        <i className="bi bi-x-lg me-1"></i>Clear
+                    </button>
                 )}
+            </div>
 
-                {/* <!-- Right: results --> */}
-                <div className={q ? "col-lg-12" : "col-lg-9"}>
-
-                    {/* <!-- Results header --> */}
-                    <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 className="mb-0 fw-semibold">
-                            {q ? <>Results for '{q}'</> : 'Products'}
-                        </h5>
-                        {q && (
-                            <button type="button" className="fk-btn-outline w-auto"
-                                onClick={() => clearSearch()} title="Clear search">
-                                <i className="bi bi-x-lg me-1"></i>Clear
-                            </button>
-                        )}
-                    </div>
-
-                    {loading && (
-                        <div className="text-center py-5 fk-muted">Loading products...</div>
+            {loading && (
+                        <div className="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3" aria-hidden="true">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <div className="col" key={`skeleton-${i}`}>
+                                    <div className="fk-card p-3">
+                                        <div className="fk-skeleton mb-3" style={{ height: 200 }}></div>
+                                        <div className="fk-skeleton mb-2" style={{ height: 12, width: '70%' }}></div>
+                                        <div className="fk-skeleton" style={{ height: 14, width: '45%' }}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     )}
 
                     {!loading && errMsg && (
@@ -248,9 +284,6 @@ function Home() {
                             )}
                         </>
                     )}
-
-                </div>
-            </div>
         </div>
     )
 }

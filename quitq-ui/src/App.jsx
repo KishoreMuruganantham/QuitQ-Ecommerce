@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router"
 import Login from "./components/auth/Login"
 import SignUp from "./components/customer/SignUp"
+import ForgotPassword from "./components/auth/ForgotPassword"
+import ResetPassword from "./components/auth/ResetPassword"
 import PageNotFound from "./components/PageNotFound"
 import CustomerLayout from "./components/layout/CustomerLayout"
 import SellerLayout from "./components/layout/SellerLayout"
@@ -24,6 +26,8 @@ return(
   <Routes>
     <Route path="" element={<Login />}/>
     <Route path="customer/signup" element={<SignUp />}/>
+    <Route path="forgot-password" element={<ForgotPassword />}/>
+    <Route path="reset-password" element={<ResetPassword />}/>
     <Route path="customer/:token" element={<CustomerLayout />}>
       <Route index element={<Home />} />
       <Route path="product/:id" element={<ProductDetail />} />

@@ -2,6 +2,8 @@ package com.springboot.quitq.service;
 
 import com.springboot.quitq.dto.request.UserDto;
 import com.springboot.quitq.dto.response.DetailsDto;
+import com.springboot.quitq.dto.response.MessageRespDto;
+import com.springboot.quitq.dto.response.ResetLinkRespDto;
 import com.springboot.quitq.dto.response.UserRespDto;
 import com.springboot.quitq.enums.Role;
 import com.springboot.quitq.exception.DuplicateEntryException;
@@ -14,6 +16,7 @@ import com.springboot.quitq.model.User;
 import com.springboot.quitq.repository.CustomerRepository;
 import com.springboot.quitq.repository.SellerRepository;
 import com.springboot.quitq.repository.UserRepository;
+import com.springboot.quitq.utility.PasswordResetTokenStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +36,7 @@ public class UserService {
     private final CustomerRepository customerRepository;
     private final SellerRepository sellerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordResetTokenStore passwordResetTokenStore;
 
     public void insert(UserDto userDto) {
 
@@ -94,5 +98,38 @@ public class UserService {
             return new DetailsDto(seller.getId(), detailsDto.username(), detailsDto.isActive(), detailsDto.role());
         }
         return detailsDto;
+    }
+
+    public ResetLinkRespDto forgotPassword(String usernameOrEmail) {
+
+        String message = "If the account exists, a password reset link has been generated";
+
+        Optional<User> optional = userRepository.findByUsername(usernameOrEmail);
+        if(optional.isEmpty())
+            optional = userRepository.findByEmail(usernameOrEmail);
+
+        if(optional.isEmpty())
+            return new ResetLinkRespDto(message, null);
+
+        String token = passwordResetTokenStore.create(optional.get().getUsername());
+        log.info("password reset link generated...");
+        return new ResetLinkRespDto(message, token);
+    }
+
+    public MessageRespDto resetPassword(String token, String newPassword) {
+
+        String username = passwordResetTokenStore.consume(token);
+        if(username == null)
+            throw new ResourceNotFoundException("Invalid or expired reset token");
+
+        Optional<User> optional = userRepository.findByUsername(username);
+        if(optional.isEmpty())
+            throw new ResourceNotFoundException("Invalid or expired reset token");
+
+        User user = optional.get();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("password reset...");
+        return new MessageRespDto("Password reset successfully");
     }
 }
