@@ -48,6 +48,8 @@ The schema is **normalised to 3NF**, fully constrained with foreign keys, and en
 | :-- | :-- |
 | `/` | **Login** — Flipkart-style split card; HTTP Basic to `GET /api/auth/login`, then `GET /api/auth/user-details` picks the home screen from the JWT's role |
 | `/customer/signup` | **Sign-up** — split card with a Customer / Seller role toggle, posting to `POST /api/customer/signup` or `POST /api/seller/signup` |
+| `/forgot-password` | **ForgotPassword** — username or email → single-use reset link (`POST /api/auth/forgot-password`) |
+| `/reset-password` | **ResetPassword** — new password + confirm, posting the token to `POST /api/auth/reset-password` |
 | `/customer/:token` | **Home** — catalogue: search with live suggestions, category chips, brand and price filters, product grid and pagination |
 | `/customer/:token/product/:id` | **ProductDetail** — image, description, seller, quantity picker, add to cart and buy now |
 | `/customer/:token/cart` | **Cart** — quantity +/-, remove line, PRICE DETAILS panel, place order |
@@ -82,8 +84,10 @@ Paged list endpoints (product lists, order history, seller orders, admin custome
 | Method | URL | Result |
 | :-- | :-- | :-- |
 | GET | `/api/auth/login` | HTTP Basic login → JWT `TokenDto` (`token`, `expiryTime`, `issueTime`) |
-| GET | `/api/auth/user-details` | Bearer JWT → `DetailsDto` (`id`, `username`, `isActive`, `role`) — the id is the customer id for `ROLE_CUSTOMER` |
+| GET | `/api/auth/user-details` | Bearer JWT → `DetailsDto` (`id`, `username`, `isActive`, `role`) — the id is the customer id for `ROLE_CUSTOMER` and the seller id for `ROLE_SELLER` |
 | POST | `/api/auth/logout` | Bearer JWT → `{"message":"Logged out successfully"}` — the token is denied server-side afterwards |
+| POST | `/api/auth/forgot-password` | Public → `ResetLinkRespDto` (`message`, `resetToken`) — the same message is returned whether the account exists or not |
+| POST | `/api/auth/reset-password` | Public `{token, newPassword}` → `{"message":"Password reset successfully"}` — the token is single-use with a 15-minute TTL |
 | POST | `/api/customer/signup` | Creates user + customer profile (`SignupDto`) |
 | GET | `/api/customer/all` · `/api/customer/{id}` | Customer reads |
 | DELETE | `/api/customer/{id}` | Remove a customer |
@@ -164,7 +168,8 @@ Spring Security is wired the way the trainer's module teaches it:
 
 - **`SecurityConfig`** — a `SecurityFilterChain` with **42 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
 - **Login** — `GET /api/auth/login` with an HTTP Basic header returns `TokenDto` (`token`, `expiryTime`, `issueTime`). The JWT (HS256, 24-hour expiry, subject = username) is minted by `JwtUtility`.
-- **User details** — `GET /api/auth/user-details` (authenticated) returns `DetailsDto` (`id`, `username`, `isActive`, `role`); for `ROLE_CUSTOMER` the id is swapped to the customer id the cart APIs need, and a disabled account raises `InactiveUserException` → HTTP 412. The UI calls it right after login to pick the role's home screen.
+- **User details** — `GET /api/auth/user-details` (authenticated) returns `DetailsDto` (`id`, `username`, `isActive`, `role`); for `ROLE_CUSTOMER` the id is swapped to the customer id the cart APIs need, for `ROLE_SELLER` to the seller id the product and order APIs need, and a disabled account raises `InactiveUserException` → HTTP 412. The UI calls it right after login to pick the role's home screen.
+- **Password recovery** — `POST /api/auth/forgot-password` accepts a username or email and returns a generic message plus a single-use, 15-minute token held in the in-memory `PasswordResetTokenStore`; `POST /api/auth/reset-password` consumes it, BCrypt-hashes the new password and burns the token so it cannot be reused.
 - **CORS** — `@CrossOrigin(origins = "http://localhost:5173")` on `AuthController`, `CustomerController` and `CartController`, the three controllers the React UI talks to.
 - **`JwtFilter`** — a `OncePerRequestFilter` registered before Spring's `UsernamePasswordAuthenticationFilter`; it reads `Authorization: Bearer <token>`, validates it, loads the user and pushes the `Role` authorities into the `SecurityContext`.
 - **Role rules** — signups, the user bootstrap and all catalogue/category reads stay open; logout accepts any authenticated JWT; cart, address, checkout, payment and customer reads require `ROLE_CUSTOMER`; product mutations and the seller order screens require `ROLE_SELLER`; analytics, user/seller management and category management require `ROLE_ADMIN`.

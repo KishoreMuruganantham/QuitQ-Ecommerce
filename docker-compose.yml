@@ -1,0 +1,51 @@
+# QuitQ full stack: MySQL + Spring Boot backend + Vite/React frontend (nginx proxy)
+services:
+
+  # MySQL 8 with the full reset/seed script loaded on first boot
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: deepcoder
+    volumes:
+      # Full reset script: creates quitq_db, drops/creates tables, seeds data
+      - ./quitq_ecommerce.sql:/docker-entrypoint-initdb.d/01_quitq.sql:ro
+      # Named volume keeps data between restarts (re-init only when volume is fresh)
+      - db-data:/var/lib/mysql
+    healthcheck:
+      # Deepcoder is the root password; ping proves the server accepts connections
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -pdeepcoder"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Spring Boot backend (internal network only; mapped to host 8082 to avoid
+  # clashing with the dev backend on host port 8080)
+  backend:
+    build: ./quitq_backend
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/quitq_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: deepcoder
+      JWT_SECRET: quitqsecretsigningkeyforjwt2026
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Frontend: nginx serves the SPA and proxies /api/ to the backend,
+  # so all API calls are same-origin (no CORS involved)
+  frontend:
+    build:
+      context: ./quitq-ui
+      args:
+        # Empty => relative API URLs => requests go to nginx and are proxied
+        VITE_API_URL: ""
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+# Named volume declaration for MySQL data
+volumes:
+  db-data:
