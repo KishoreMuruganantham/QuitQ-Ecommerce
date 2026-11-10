@@ -6,6 +6,8 @@ phases:
       java: corretto21
   pre_build:
     commands:
+      - docker run -d --name testdb -e MYSQL_ROOT_PASSWORD=deepcoder -e MYSQL_DATABASE=quitq_db -p 3306:3306 mysql:8.0
+      - timeout 180 bash -c 'until docker exec testdb mysqladmin ping -h 127.0.0.1 -uroot -pdeepcoder --silent; do sleep 2; done'
       - cd quitq_backend && mvn -B test && cd ..
   build:
     commands:
