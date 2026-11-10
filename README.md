@@ -571,6 +571,47 @@ QuitQ-Ecommerce/
 
 ---
 
+## Deployment
+
+### Local development (unchanged)
+
+```powershell
+cd quitq_backend ; .\mvnw.cmd spring-boot:run     # API on :8080
+cd quitq-ui      ; npm install ; npm run dev        # UI on :5173
+```
+
+### Local Docker stack
+
+```powershell
+docker compose up -d
+```
+
+| Service | Image | Host port | Notes |
+| :-- | :-- | :-- | :-- |
+| `frontend` | `quitq-frontend` (build `quitq-ui/`) | **80** | nginx serves the SPA and reverse-proxies `/api` → `backend:8080`, so the browser stays same-origin (no CORS needed) |
+| `backend` | `quitq-backend` (build `quitq_backend/`) | **8082** | Spring Boot, datasource/jwt supplied via `SPRING_DATASOURCE_*` / `JWT_SECRET` env |
+| `db` | `mysql:8.0` | internal | seeded on first start from `quitq_ecommerce.sql` (schema, triggers, demo data) |
+
+Frontend build-time config: `VITE_API_URL` (empty = same-origin proxy, default `http://localhost:8080` for the Vite dev server).
+
+### AWS (ap-southeast-2, account `558975907408`)
+
+| Piece | Resource | Purpose |
+| :-- | :-- | :-- |
+| Compute | EC2 `quitq-app` (t3.micro, AL2023) | runs `docker-compose.ec2.yml` (frontend:80, backend:8082) + CodeDeploy agent |
+| Database | RDS `quitq-db` (MySQL 8.0, db.t3.micro, private) | seeded from `quitq_ecommerce.sql`; reachable only from the EC2 security group |
+| Registry | ECR `quitq-backend`, `quitq-frontend` | image versions pushed by CI |
+| Artifacts | S3 `quitq-deploy-558975907408` | seed SQL + EC2 compose file |
+| CI/CD | CodePipeline `quitq-pipeline` → CodeBuild `quitq-build` → CodeDeploy `quitq-app-deploy` | see below |
+
+**Pipeline** (triggered by a git check-in to `main`):
+
+1. **Source** — GitHub (`KishoreMuruganantham/QuitQ-Ecommerce`) through the CodeConnections connection `quitq-github`.
+2. **Build** (`buildspec.yml`) — **`mvn -B test` runs first as the gate** (Mockito-mocked unit tests must pass), then both Docker images are built and pushed to ECR (tagged `latest` + build number).
+3. **Deploy** (`appspec.yml` + `deploy.sh`) — CodeDeploy copies the compose file to `/opt/quitq` and runs `docker compose pull && up -d`; the database volume is never touched, so RDS data survives redeploys.
+
+---
+
 ## Roadmap
 
 - [x] MySQL 8.0 schema, ER model, constraints and business-rule triggers
@@ -582,9 +623,10 @@ QuitQ-Ecommerce/
 - [x] React front-end — Flipkart-style UI: login, sign-up, customer catalogue / cart / checkout, seller and admin screens (`quitq-ui/`)
 - [ ] Order status state machine with optimistic concurrency control
 - [ ] Payment gateway integration and webhook handling
-- [x] Unit tests with Mockito — 39 tests across twelve classes
+- [x] Unit tests with Mockito — 51 tests across twelve classes
 - [x] SonarCloud static analysis — quality gate passed, zero open issues
-- [ ] CI pipeline with schema migration validation
+- [x] CI/CD pipeline — CodePipeline on git check-in: unit-test gate → Docker images → ECR → CodeDeploy to EC2
+- [x] Docker images for frontend and backend, compose stack, AWS EC2 deployment with RDS as the datastore
 
 ---
 
