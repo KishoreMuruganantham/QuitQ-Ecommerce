@@ -338,11 +338,6 @@
 
 .fk-footer {
   margin-top: auto;
-  background: #ffe11b;
-  color: #172337;
-  text-align: center;
-  padding: 16px;
-  font-size: 13px;
 }
 
 .fk-timeline {
@@ -550,28 +545,67 @@
   transform: scale(1.03);
 }
 
-.fk-footer-tag {
-  color: #172337;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.6px;
+.fk-footer-panel {
+  position: relative;
+  background: #2874f0;
+  overflow: hidden;
 }
 
-.fk-footer-top {
-  color: #172337;
-  background: none;
-  border: 1px solid rgba(23, 35, 55, 0.5);
-  padding: 6px 14px;
-  border-radius: 2px;
-  font-size: 13px;
+.fk-footer-stripes {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 16px);
+  pointer-events: none;
+}
+
+.fk-footer-content {
+  position: relative;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 56px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.fk-footer-logo {
+  height: 46px;
+  display: block;
+}
+
+.fk-footer-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+}
+
+.fk-footer-col-title {
+  color: #fff;
+  font-size: 18px;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  margin: 0 0 16px;
 }
 
-.fk-footer-top:hover {
-  background: #172337;
-  color: #ffe11b;
+.fk-footer-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fk-footer-item {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.fk-footer-item:hover {
+  color: #fff;
 }
 
 .fk-dropdown {
