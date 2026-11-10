@@ -1,0 +1,35 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+  pre_build:
+    commands:
+      - cd quitq_backend && mvn -B test && cd ..
+  build:
+    commands:
+      - aws sts get-caller-identity
+      - docker info >/dev/null 2>&1 || (nohup dockerd --host=unix:///var/run/docker.sock >/var/log/dockerd.log 2>&1 &)
+      - timeout 30 sh -c "until docker info >/dev/null 2>&1; do sleep 1; done"
+      - aws ecr get-login-password --region ap-southeast-2 | docker login --username AWS --password-stdin 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com
+      - docker build -t quitq-backend:$CODEBUILD_BUILD_NUMBER -t quitq-backend:latest ./quitq_backend
+      - docker build -t quitq-frontend:$CODEBUILD_BUILD_NUMBER -t quitq-frontend:latest ./quitq-ui
+      - docker tag quitq-backend:$CODEBUILD_BUILD_NUMBER 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-backend:$CODEBUILD_BUILD_NUMBER
+      - docker tag quitq-backend:latest 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-backend:latest
+      - docker tag quitq-frontend:$CODEBUILD_BUILD_NUMBER 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-frontend:$CODEBUILD_BUILD_NUMBER
+      - docker tag quitq-frontend:latest 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-frontend:latest
+      - docker push 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-backend:$CODEBUILD_BUILD_NUMBER
+      - docker push 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-backend:latest
+      - docker push 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-frontend:$CODEBUILD_BUILD_NUMBER
+      - docker push 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-frontend:latest
+  post_build:
+    commands:
+      - chmod +x deploy.sh
+
+artifacts:
+  files:
+    - appspec.yml
+    - deploy.sh
+    - docker-compose.ec2.yml
+    - buildspec.yml

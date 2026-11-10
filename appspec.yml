@@ -1,0 +1,22 @@
+version: 0.0
+os: linux
+files:
+  - source: docker-compose.ec2.yml
+    destination: /opt/quitq
+    overwrite: true
+  - source: deploy.sh
+    destination: /opt/quitq
+    overwrite: true
+permissions:
+  - object: /opt/quitq
+    pattern: "deploy.sh"
+    owner: root
+    group: root
+    mode: 755
+    type:
+      - file
+hooks:
+  ApplicationStart:
+    - location: deploy.sh
+      timeout: 300
+      runas: root
