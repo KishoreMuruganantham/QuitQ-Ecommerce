@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      java: corretto17
+      java: corretto21
   pre_build:
     commands:
       - cd quitq_backend && mvn -B test && cd ..
