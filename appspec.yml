@@ -3,10 +3,9 @@ os: linux
 files:
   - source: docker-compose.ec2.yml
     destination: /opt/quitq
-    overwrite: true
   - source: deploy.sh
     destination: /opt/quitq
-    overwrite: true
+file_exists_behavior: OVERWRITE
 permissions:
   - object: /opt/quitq
     pattern: "deploy.sh"
