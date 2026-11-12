@@ -1,51 +1,27 @@
-# QuitQ EC2 stack: MySQL (local mirror; backend is pointed at RDS by user-data),
-# Spring Boot backend + frontend (nginx reverse-proxies /api -> backend:8080)
+# QuitQ EC2 stack: Spring Boot backend on the private RDS instance
+# + frontend (nginx reverse-proxies /api -> backend:8080).
 # Image-based variant of docker-compose.yml — no build: sections, pulled from ECR.
+#
+# The database lives on RDS (quitq-db.cn0uqccqww16...): it is reachable only from
+# this instance's security group, so no local MySQL service runs here. This file is
+# the one CodeDeploy ships on every release, so the RDS endpoint is baked in as the
+# default — the app can never silently fall back to a container database.
+
 services:
 
-  # MySQL 8 with the full reset/seed script loaded on first boot.
-  # On the EC2 the backend datasource URL is rewritten to the real RDS endpoint
-  # by user-data; this service remains as a local fallback/mirror.
-  db:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: deepcoder
-    volumes:
-      # Full reset script: creates quitq_db, drops/creates tables, seeds data
-      - ./quitq_ecommerce.sql:/docker-entrypoint-initdb.d/01_quitq.sql:ro
-      # Named volume keeps data between restarts (re-init only when volume is fresh)
-      - db-data:/var/lib/mysql
-    healthcheck:
-      # Deepcoder is the root password; ping proves the server accepts connections
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -pdeepcoder"]
-      interval: 5s
-      timeout: 5s
-      retries: 30
-
-  # Spring Boot backend (internal network only; mapped to host 8082)
   backend:
     image: 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-backend:latest
     ports:
       - "8082:8080"
     environment:
-      # user-data rewrites this to jdbc:mysql://<rds-endpoint>:3306/quitq_db
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/quitq_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://quitq-db.cn0uqccqww16.ap-southeast-2.rds.amazonaws.com:3306/quitq_db
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: deepcoder
       JWT_SECRET: quitqsecretsigningkeyforjwt2026
-    depends_on:
-      db:
-        condition: service_healthy
 
-  # Frontend: nginx serves the SPA and proxies /api/ to the backend,
-  # so all API calls are same-origin (no CORS involved)
   frontend:
     image: 558975907408.dkr.ecr.ap-southeast-2.amazonaws.com/quitq-frontend:latest
     ports:
       - "80:80"
     depends_on:
       - backend
-
-# Named volume declaration for MySQL data
-volumes:
-  db-data:
