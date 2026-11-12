@@ -6,6 +6,135 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.0] —2026-11-12
+
+The platform becomes a full product: a complete Flipkart-style three-role
+front-end, the remaining case-study compliance items closed (API versioning,
+server-side logout, password recovery, order-tracking propagation, seller-id
+resolution), a containerised runtime and an AWS deployment pipeline where a
+push to `main` runs the unit tests, builds both images and rolls them onto
+EC2 in front of a private RDS.
+
+### Added
+
+**React UI — Flipkart redesign (`quitq-ui/`)**
+
+- Single-line header (logo, debounced search with live suggestions, Home,
+  profile dropdown, Cart), role-guarded layouts, and a public layout for the
+  library page; footer rebuilt as the blue panel with per-role feature columns.
+- Full route tree: catalogue with category circles and an opt-in **Filters**
+  panel (brand/price, draft inputs committed on Apply), product detail
+  (breadcrumb, seller name, qty picker, add-to-cart / buy-now), cart with
+  qty controls and PRICE DETAILS, checkout (address add/select + five payment
+  methods), order confirmation, My Orders and a four-step tracking timeline.
+- Seller: My Products (add / edit / mark out-of-stock / delete), orders with
+  status dropdowns, sales report with totals. Admin: analytics cards, user and
+  seller management, category CRUD.
+- Sign-up with Customer/Seller toggle and a **real-time password-strength
+  meter**; **Forgot Password** and **Reset Password** pages.
+- One design system: ~60 `fk-*` classes over Bootstrap, Roboto, your logo and
+  the Q-mark favicon; `no-console` lint rule; **zero new npm dependencies**
+  (dependency set identical to the trainer's `helpdesk-ui`).
+
+**API (`quitq_backend/`)**
+
+- **API versioning** — `ApiVersionFilter` + `VersioningConfig`: `/api/v1..v3/**`
+  rewrites onto `/api/**` and stamps `X-API-Version`.
+- **Server-side logout** — `TokenDenylist` consulted by `JwtFilter`; replaying
+  a logged-out token returns401.
+- **Password recovery** — `POST /api/auth/forgot-password` (username or email,
+  generic response, single-use15-minute token in `PasswordResetTokenStore`)
+  and `POST /api/auth/reset-password` (BCrypt re-encode, token burned).
+- `PUT /api/product/{id}` with ownership checks and stock→status recompute;
+  `GET /api/product/seller/{sellerId}` for My Products; sales-report aggregate.
+- `user-details` now returns the **seller id** for `ROLE_SELLER` (was the user
+  id), fixing every seller-scoped call.
+- Order status updates write an `order_tracking` row and advance the order
+  header, so the customer timeline follows the seller's dropdown.
+- Global CORS configuration bean (dev origin) replaces per-controller
+  `@CrossOrigin`; every service logs through `@Slf4j` (zero `System.out`).
+
+**Docker**
+
+- Multi-stage images: `quitq_backend` (Maven → Temurin21 JRE) and `quitq_ui`
+  (Node20 → nginx); nginx reverse-proxies `/api` to the backend so the browser
+  is always same-origin — no CORS in any containerised environment.
+- `docker-compose.yml` brings up frontend (:80), backend (:8082) and a
+  self-seeding MySQL from `quitq_ecommerce.sql`; `docker-compose.ec2.yml` is
+  the image-based variant CodeDeploy ships, with the **RDS endpoint baked in**
+  so a release can never silently fall back to a container database.
+
+**AWS & CI/CD**
+
+- EC2 `quitq-app` (t3.micro, AL2023) running the compose stack; **private RDS**
+  `quitq-db` (MySQL8, reachable only from the EC2 security group); ECR
+  repositories for both images; S3 bucket for seeds and deploy artifacts.
+- `buildspec.yml` — `mvn -B test` runs first as the **quality gate** (with a
+  throwaway MySQL container), then both images are built and pushed to ECR.
+- `appspec.yml` + `deploy.sh` — CodeDeploy copies the compose file and runs
+  `docker compose pull && up -d`; the database volume is never touched.
+- `.github/workflows/deploy.yml` — every push to `main` starts the pipeline
+  through a scoped IAM user whose only permission is
+  `codepipeline:StartPipelineExecution` (the org SCP blocks OIDC federation).
+- Green end-to-end executions proven: Source → Build (Tests run:51) → Deploy.
+
+**Library — Case Study A**
+
+- `Author` / `Book` entities, derived-query `BookRepository`
+  (`findByPublishedYearGreaterThanEqual`), `BookService`, `BookController`
+  (`GET /api/books`, `GET /api/books/search?minYear=`) and the public
+  `/library` page: fk-styled table, skeleton loading, draft+Apply year filter.
+- `docs/Library-Case-Study-A-Seed.sql` —3 authors,6 books (idempotent).
+
+**Documentation**
+
+- README: deployment section (three run modes), library route and API rows,
+  corrected counts (51 tests across13 classes,5 Postman folders /58 requests,
+ 26 components); Postman collection gains the **Library Case Study A - Books**
+  folder.
+
+### Verification
+
+- `mvnw.cmd test` → **51 tests,0 failures** (Mockito service suites plus
+  `@WebMvcTest` slices for versioning, logout denylist, password reset and
+  sales report); `vite build` green; `eslint`0 problems.
+- Browser walkthroughs on all three modes (dev, local Docker, EC2): login,
+  catalogue, filters, cart → checkout → confirmation → tracking, seller CRUD
+  and status forwarding, admin management, forgot-password round trip, `/library`
+  year search — zero console errors.
+- Pipeline executions green on `main`; RDS seeded (10 products,6 books) and
+  verified as the live datasource; Cost Explorer reports $0.00 for the month.
+
+### Known limitations & deliberate deviations
+
+- **Postman instead of Swagger** and **JavaScript instead of TypeScript** —
+  both follow the trainer's `helpdesk-ui` conventions; OAuth stays on the
+  optional list (his project does not implement it either).
+- Payment is method selection + a `PENDING → COMPLETED` record — the seam a
+  real gateway drops into; no live PSP integration.
+- Logout denylist and password-reset tokens are in-memory (single instance) —
+  Redis is the production answer; password reset shows the link on screen
+  because no SMTP is in scope.
+- The site runs over plain HTTP (no domain/certificate provisioned); the
+  GitHub-App webhook could not register (org SCP), so GitHub Actions bridges
+  check-ins to the pipeline.
+
+### Upgrade notes
+
+Run it any of three ways — identical artifacts, configuration only differs:
+
+```bash
+docker compose up -d                              # http://localhost
+cd quitq_backend && ./mvnw spring-boot:run       # dev API :8080
+cd quitq_ui && npm install && npm run dev        # dev UI  :5173
+```
+
+`quitq_ecommerce.sql` remains a **full reset script** (drops and recreates its
+twelve tables) — import only into a database you can afford to lose; the
+library seed is a separate idempotent file.
+
+---
+
 ## [2.2.0] — 2026-11-01
 
 The platform gets its browser front-end: a React single-page app that signs
@@ -427,6 +556,7 @@ a database containing data you wish to keep.
 
 ---
 
+[2.3.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.3.0
 [2.2.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.2.0
 [2.1.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.1.0
 [2.0.0]: https://github.com/KishoreMuruganantham/QuitQ-Ecommerce/releases/tag/v2.0.0

@@ -30,7 +30,7 @@ This repository captures the **React front-end, the API layer, plus the design a
 | :-- | :-- |
 | `quitq-ui/` | React 19 + Vite 8 single-page app — Flipkart-style login, sign-up, customer catalogue/cart/checkout, seller and admin screens |
 | `quitq_backend/` | Spring Boot 3.5 REST API — **51 endpoints** covering all eight business flows |
-| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection — 4 folders, 56 requests, ready to import |
+| `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection - 5 folders, 58 requests, ready to import |
 | `quitq_ecommerce.sql` | Complete, runnable MySQL 8.0 schema with constraints, triggers and seed data |
 | `quitq_ecommerce.mwb` | Editable MySQL Workbench EER model of the same schema |
 | `docs/QuitQ - Ecom.pdf` | Project specification and architecture document |
@@ -200,6 +200,9 @@ Seller catalogue management (add / edit / mark out-of-stock), plus an orders-rec
 **Flow 8 · Admin Management**
 Analytics report lists, category inventory management (add / modify / remove), and user/seller profile moderation with account removal.
 
+**Library — Case Study A**
+A public book catalogue at `/library` (no login): id, title, genre, year, price and author columns, plus a **minimum-published-year search** on the JPA derived query `findByPublishedYearGreaterThanEqual` — presented with the same fk-styled table, skeleton loading and Apply/Clear filter pattern as the storefront.
+
 ---
 
 ## Architecture
@@ -218,7 +221,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 
 | Piece | Count | Notes |
 | :-- | :-- | :-- |
-| React UI | 20 components | `quitq-ui/` — login, sign-up, customer catalogue / product / cart / checkout / orders, seller and admin screens, role layouts, page-not-found |
+| React UI | 26 components | `quitq-ui/` - login, sign-up, customer catalogue / product / cart / checkout / orders, seller and admin screens, role layouts, page-not-found |
 | Controllers | 11 | 51 endpoints, no class-level `@RequestMapping` |
 | Services | 11 | Business rules; checkout is a single `@Transactional` method |
 | Repositories | 12 | Derived queries plus four JPQL `@Query` methods — dynamic filter, seller join, group-by stats, LEFT JOIN unpurchased lookup |
@@ -228,7 +231,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 | Enums | 5 | `Role`, `ProductStatus`, `OrderStatus`, `PaymentMethod`, `PaymentStatus` |
 | Exceptions | 6 + handler | Custom exceptions (incl. `OwnershipException`, `InactiveUserException`) + `GlobalExceptionHandler` |
 | Security | 42 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks, CORS for the UI |
-| Tests | 39 | Unit tests across twelve classes — six `@ExtendWith(MockitoExtension.class)` service suites plus controller and filter tests (`mvnw.cmd test`) |
+| Tests | 51 | Unit tests across thirteen classes - six `@ExtendWith(MockitoExtension.class)` service suites plus controller and filter tests (`mvnw.cmd test`) |
 
 > Catalogue reads are open to every caller (`permitAll`); write endpoints need a JWT with the matching role, and every customer/seller operation is additionally checked against the token's owner.
 
@@ -429,7 +432,7 @@ cd quitq_backend
 ./mvnw spring-boot:run            # macOS / Linux
 ```
 
-Wait for `Started QuitqBackendApplication` (about 40–50 seconds on first boot while Hibernate maps the entities onto the existing tables). Run the test suite with `.\mvnw.cmd test` (`./mvnw test` on macOS / Linux) — 39 tests across twelve classes.
+Wait for `Started QuitqBackendApplication` (about 40–50 seconds on first boot while Hibernate maps the entities onto the existing tables). Run the test suite with `.\mvnw.cmd test` (`./mvnw test` on macOS / Linux) — 51 tests across thirteen classes.
 
 ### 5. Run the React UI
 
@@ -475,6 +478,8 @@ Open `quitq_ecommerce.mwb` in MySQL Workbench to explore or edit the EER diagram
 
 The same accounts drive the React UI at `http://localhost:5173`: `admin` opens Analytics, `john_doe` opens the catalogue with the seeded Sony line already in the cart (Rs. 24,999), and `techstore` / `fashionhub` open My Products with their listings and orders.
 
+The **library module** (Case Study A) ships a separate idempotent seed — `docs/Library-Case-Study-A-Seed.sql` (3 authors,6 books) — run it once after the first backend boot; it loads into whichever database the app is using (local MySQL, the Docker container or RDS) and backs the public `/library` page.
+
 ### Suggested demo walkthrough
 
 Run the collection folders in this order — the story reads end-to-end:
@@ -491,7 +496,7 @@ Run the collection folders in this order — the story reads end-to-end:
 ## Trying the API — Postman
 
 - **Import**: `postman/QuitQ-Ecommerce.postman_collection.json` into Postman (v2.1 format), or open the shared **QuitQ Ecommerce APIs** collection in your Postman workspace.
-- **4 folders / 56 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
+- **5 folders / 58 requests** mirroring the flow tables above, with a collection variable `baseUrl = http://localhost:8080`, seeded credentials in the descriptions, and three dedicated error-scenario requests.
 - Run the **three login requests first** — each uses HTTP Basic and saves its JWT to a collection variable (`customerToken`, `sellerToken`, `adminToken`); every protected request then sends `Authorization: Bearer {{…}}`.
 - The open GETs (catalogue, categories) can still be pasted straight into the browser address bar; the rest need a token from the matching login.
 
@@ -566,7 +571,7 @@ QuitQ-Ecommerce/
 │       │   └── PageNotFound.jsx
 │       └── store/                   # store.js · actions/CustomerAction.js · reducers/CustomerReducer.js
 ├── postman/
-│   └── QuitQ-Ecommerce.postman_collection.json   # 4 folders · 56 requests
+│   └── QuitQ-Ecommerce.postman_collection.json   # 5 folders · 58 requests
 └── docs/
     ├── QuitQ - Ecom.pdf                              # Project specification
     └── E-commerce Registration &-2026-09-25-055625.png  # Workflow diagram
@@ -626,7 +631,7 @@ Frontend build-time config: `VITE_API_URL` (empty = same-origin proxy, default `
 - [x] React front-end — Flipkart-style UI: login, sign-up, customer catalogue / cart / checkout, seller and admin screens (`quitq-ui/`)
 - [ ] Order status state machine with optimistic concurrency control
 - [ ] Payment gateway integration and webhook handling
-- [x] Unit tests with Mockito — 51 tests across twelve classes
+- [x] Unit tests with Mockito - 51 tests across thirteen classes
 - [x] SonarCloud static analysis — quality gate passed, zero open issues
 - [x] CI/CD pipeline — CodePipeline on git check-in: unit-test gate → Docker images → ECR → CodeDeploy to EC2
 - [x] Docker images for frontend and backend, compose stack, AWS EC2 deployment with RDS as the datastore
