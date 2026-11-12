@@ -63,6 +63,7 @@ The schema is **normalised to 3NF**, fully constrained with foreign keys, and en
 | `/admin/:token` | **Analytics** — user, seller and order counts, orders by status |
 | `/admin/:token/users` | **ManageUsers** — customers & sellers, with delete |
 | `/admin/:token/categories` | **ManageCategories** — add / edit / delete categories |
+| `/library` | **BookList** — public library catalogue: book list + minimum-year search (Library Case Study A) |
 | `*` | **PageNotFound** |
 
 **Look and feel.** The UI copies the Flipkart visual language: a `#2874F0` header with the QuitQ logo (`public/logo-transparent.png`), `#FB641B` primary buttons, a `#F1F3F6` page background, and the Q-mark favicon (`public/favicon.png`). The three layouts (`CustomerLayout`, `SellerLayout`, `AdminLayout`) are role-guarded — each compares the `:token` URL parameter against the stored JWT and the expected role, and bounces mismatches back to `/` — so every screen under a role prefix is protected by the route tree itself. The token travels as a URL parameter, the pattern the training module uses. Logout posts to `POST /api/auth/logout`, which denies the token server-side before localStorage is cleared.
@@ -88,6 +89,8 @@ Paged list endpoints (product lists, order history, seller orders, admin custome
 | POST | `/api/auth/logout` | Bearer JWT → `{"message":"Logged out successfully"}` — the token is denied server-side afterwards |
 | POST | `/api/auth/forgot-password` | Public → `ResetLinkRespDto` (`message`, `resetToken`) — the same message is returned whether the account exists or not |
 | POST | `/api/auth/reset-password` | Public `{token, newPassword}` → `{"message":"Password reset successfully"}` — the token is single-use with a 15-minute TTL |
+| GET | `/api/books` | Public → all library books (`BookDto`: id, title, genre, publishedYear, price, authorName) |
+| GET | `/api/books/search?minYear=1950` | Public → books published in `minYear` or later (JPA derived query) |
 | POST | `/api/customer/signup` | Creates user + customer profile (`SignupDto`) |
 | GET | `/api/customer/all` · `/api/customer/{id}` | Customer reads |
 | DELETE | `/api/customer/{id}` | Remove a customer |

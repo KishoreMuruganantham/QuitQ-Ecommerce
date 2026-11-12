@@ -21,12 +21,15 @@ import Analytics from "./components/admin/Analytics"
 import ManageUsers from "./components/admin/ManageUsers"
 import ManageCategories from "./components/admin/ManageCategories"
 import BookList from "./components/library/BookList"
+import PublicLayout from "./components/layout/PublicLayout"
 
 function App() {
 return(
   <Routes>
     <Route path="" element={<Login />}/>
-    <Route path="library" element={<BookList />}/>
+    <Route path="library" element={<PublicLayout />}>
+      <Route index element={<BookList />} />
+    </Route>
     <Route path="customer/signup" element={<SignUp />}/>
     <Route path="forgot-password" element={<ForgotPassword />}/>
     <Route path="reset-password" element={<ResetPassword />}/>

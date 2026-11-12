@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "QuitQ Ecommerce APIs",
-    "description": "Collection for the QuitQ E-Commerce Spring Boot backend running at http://localhost:8080 (MySQL db quitq_db).\n\nOrganised one folder per application flow:\n- Flow 1 - Auth & Signup: login, customer/seller signup and user management\n- Flow 2/6/8 - Category & Product: category CRUD, product catalogue, search, filter, stock\n- Flow 3/4 - Address & Cart: shipping addresses and the shopping cart\n- Flow 4/5/7/8 - Order, Payment, Seller & Admin: order lifecycle, payments, seller order items, admin analytics\n\nSeeded accounts: admin / admin@123 (admin), techstore / techstore@123 and fashionhub / fashionhub@123 (sellers 1 and 2), john_doe / john@123 (customer 1, with cart item 1 and shipping address 1). Categories 1 Electronics, 2 Mobile, 3 Fashion, 4 Home & Furniture; products 1 Sony WH-1000XM5, 2 Dell XPS 15, 3 iPhone 15 Pro, 4 Cotton Shirt, 5 Office Chair.\n\nAuthentication: run the three login requests first - each sends HTTP Basic and stores the returned JWT in the customerToken / sellerToken / adminToken collection variable; every protected request then sends Authorization: Bearer {{...}}. The signups, the user bootstrap and all catalogue/category reads stay open with no token.",
+    "description": "Collection for the QuitQ E-Commerce Spring Boot backend running at http://localhost:8080 (MySQL db quitq_db).\n\nOrganised one folder per application flow:\n- Flow 1 - Auth & Signup: login, customer/seller signup and user management\n- Flow 2/6/8 - Category & Product: category CRUD, product catalogue, search, filter, stock\n- Flow 3/4 - Address & Cart: shipping addresses and the shopping cart\n- Flow 4/5/7/8 - Order, Payment, Seller & Admin: order lifecycle, payments, seller order items, admin analytics\n- Library Case Study A - Books: public book catalogue and minimum-year search backing the /library page\n\nSeeded accounts: admin / admin@123 (admin), techstore / techstore@123 and fashionhub / fashionhub@123 (sellers 1 and 2), john_doe / john@123 (customer 1, with cart item 1 and shipping address 1). Categories 1 Electronics, 2 Mobile, 3 Fashion, 4 Home & Furniture; products 1 Sony WH-1000XM5, 2 Dell XPS 15, 3 iPhone 15 Pro, 4 Cotton Shirt, 5 Office Chair.\n\nAuthentication: run the three login requests first - each sends HTTP Basic and stores the returned JWT in the customerToken / sellerToken / adminToken collection variable; every protected request then sends Authorization: Bearer {{...}}. The signups, the user bootstrap and all catalogue/category reads stay open with no token.",
     "schema": "https://schema.postman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -968,6 +968,32 @@
           },
           "response": [],
           "description": "Returns the total number of registered sellers."
+        }
+      ]
+    },
+    {
+      "name": "Library Case Study A - Books",
+      "description": "Public book catalogue endpoints backing the /library page (no authentication required).",
+      "item": [
+        {
+          "name": "Get all books",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/books"
+          },
+          "response": [],
+          "description": "Returns every book with id, title, genre, publishedYear, price and authorName."
+        },
+        {
+          "name": "Search books by minimum year",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/books/search?minYear=1950"
+          },
+          "response": [],
+          "description": "Returns books published in minYear or later (JPA derived query findByPublishedYearGreaterThanEqual). The example minYear=1950 returns The Guide (1958), The Alchemist (1988) and The Spy (2016)."
         }
       ]
     }

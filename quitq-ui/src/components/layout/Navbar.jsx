@@ -16,6 +16,7 @@ function Navbar() {
     const rootPath = role === 'ROLE_SELLER' ? `/seller/${token}`
         : role === 'ROLE_ADMIN' ? `/admin/${token}`
             : `/customer/${token}`
+    const isLoggedIn = Boolean(token && role)
 
     const onKeywordChange = (e) => {
         const value = e.target.value
@@ -63,7 +64,7 @@ function Navbar() {
                 style={{ maxWidth: 1280, width: '100%' }}>
 
                 {/* <!-- Logo --> */}
-                <Link to={rootPath} className="d-flex align-items-center text-decoration-none me-1">
+                <Link to={isLoggedIn ? rootPath : "/"} className="d-flex align-items-center text-decoration-none me-1">
                     <img src="/logo-transparent.png" alt="QuitQ" style={{ height: 38 }} />
                 </Link>
 
@@ -96,16 +97,22 @@ function Navbar() {
                 {/* <!-- Spacer for roles without search --> */}
                 {role !== 'ROLE_CUSTOMER' && <div className="flex-grow-1"></div>}
 
-                {/* <!-- Same line: Home, Profile, Cart (Flipkart style) --> */}
+                {/* <!-- Same line: Home, Profile, Cart (Flipkart style) — guests see Sign in --> */}
                 <div className="d-flex align-items-center ms-auto gap-1 flex-wrap">
-                    <Link className="fk-nav-link" to={rootPath}>
-                        <i className="bi bi-house-door me-1"></i>Home
-                    </Link>
-                    <ProfileDropdown />
-                    {role === 'ROLE_CUSTOMER' && (
-                        <Link className="fk-nav-link" to={`/customer/${token}/cart`}>
-                            <i className="bi bi-cart3 me-1"></i>Cart
-                        </Link>
+                    {isLoggedIn ? (
+                        <>
+                            <Link className="fk-nav-link" to={rootPath}>
+                                <i className="bi bi-house-door me-1"></i>Home
+                            </Link>
+                            <ProfileDropdown />
+                            {role === 'ROLE_CUSTOMER' && (
+                                <Link className="fk-nav-link" to={`/customer/${token}/cart`}>
+                                    <i className="bi bi-cart3 me-1"></i>Cart
+                                </Link>
+                            )}
+                        </>
+                    ) : (
+                        <Link className="fk-nav-link" to="/">Sign in</Link>
                     )}
                 </div>
             </div>
