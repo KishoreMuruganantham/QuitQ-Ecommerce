@@ -616,6 +616,8 @@ Frontend build-time config: `VITE_API_URL` (empty = same-origin proxy, default `
 
 ### AWS (ap-southeast-2, account `558975907408`)
 
+> **Status — torn down on 12 Nov 2026.** All chargeable AWS resources (EC2 instance, RDS database, ECR repositories, S3 artifacts bucket, CodePipeline / CodeBuild / CodeDeploy, IAM roles and the CI trigger user) were deleted so the account incurs **$0 charges**. Nothing in this section is live; it documents exactly what existed and how to bring it back. Local development and the local Docker stack below are unaffected. To recreate: follow this section plus `buildspec.yml`, `appspec.yml` and `deploy.sh` (all kept in the repo), seed with `quitq_ecommerce.sql`, and re-add the GitHub secrets — the full story is in [RELEASE_NOTES.md v2.3.0](RELEASE_NOTES.md).
+
 | Piece | Resource | Purpose |
 | :-- | :-- | :-- |
 | Compute | EC2 `quitq-app` (t3.micro, AL2023) | runs `docker-compose.ec2.yml` (frontend:80, backend:8082) + CodeDeploy agent |
