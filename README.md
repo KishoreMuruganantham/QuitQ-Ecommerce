@@ -40,6 +40,18 @@ The schema is **normalised to 3NF**, fully constrained with foreign keys, and en
 
 ---
 
+## Screenshots
+
+| | |
+| :-- | :-- |
+| **Login** — Flipkart split card with role-based redirect<br><img src="docs/screenshots/01-login.png" width="460" alt="Login screen"> | **Catalog** — live search, category circles, opt-in filters, product grid<br><img src="docs/screenshots/02-catalog.png" width="460" alt="Product catalog"> |
+| **Product detail** — images, seller name, stock, quantity picker, add-to-cart<br><img src="docs/screenshots/03-product.png" width="460" alt="Product detail"> | **Cart** — quantity controls and the PRICE DETAILS panel<br><img src="docs/screenshots/04-cart.png" width="460" alt="Shopping cart"> |
+| **Checkout** — delivery address selection and payment methods<br><img src="docs/screenshots/05-checkout.png" width="460" alt="Checkout"> | **Order tracking** — Placed → Processing → Shipped → Delivered timeline<br><img src="docs/screenshots/06-tracking.png" width="460" alt="Order tracking"> |
+| **Seller — My Products** — add / edit / mark out-of-stock / delete<br><img src="docs/screenshots/07-seller.png" width="460" alt="Seller products"> | **Admin — Analytics** — user, seller and order counts by status<br><img src="docs/screenshots/08-admin.png" width="460" alt="Admin analytics"> |
+| **Library (Case Study A)** — public book catalogue with year search<br><img src="docs/screenshots/09-library.png" width="460" alt="Library page"> | |
+
+---
+
 ## React UI
 
 `quitq-ui/` is the browser front-end for the API — React 19, Vite 8, react-router 7 (the `react-router` package), Redux Toolkit and axios, styled with Bootstrap 5.3 and bootstrap-icons loaded from the CDN (no CSS bundler, no TypeScript). It follows the same role model as the API:
