@@ -10,7 +10,7 @@
 ![React](https://img.shields.io/badge/React-19.3.1-61DAFB.svg?logo=react&logoColor=black)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF.svg?logo=vite&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-00758F.svg?logo=mysql&logoColor=white)
-![Postman](https://img.shields.io/badge/Postman-56%20requests-F15A29.svg?logo=postman&logoColor=white)
+![Postman](https://img.shields.io/badge/Postman-58%20requests-F15A29.svg?logo=postman&logoColor=white)
 ![Release](https://img.shields.io/github/v/release/KishoreMuruganantham/QuitQ-Ecommerce?label=release)
 ![Training](https://img.shields.io/badge/Hexaware-FSD%20Training-E60012.svg)
 
@@ -29,7 +29,7 @@ This repository captures the **React front-end, the API layer, plus the design a
 | Artefact | Purpose |
 | :-- | :-- |
 | `quitq-ui/` | React 19 + Vite 8 single-page app — Flipkart-style login, sign-up, customer catalogue/cart/checkout, seller and admin screens |
-| `quitq_backend/` | Spring Boot 3.5 REST API — **51 endpoints** covering all eight business flows |
+| `quitq_backend/` | Spring Boot 3.5 REST API - **56 endpoints** covering all eight business flows and the library module |
 | `postman/QuitQ-Ecommerce.postman_collection.json` | Postman v2.1 collection - 5 folders, 58 requests, ready to import |
 | `quitq_ecommerce.sql` | Complete, runnable MySQL 8.0 schema with constraints, triggers and seed data |
 | `quitq_ecommerce.mwb` | Editable MySQL Workbench EER model of the same schema |
@@ -181,11 +181,11 @@ The database enforces the rest: `trg_check_stock_before_order` refuses to insert
 
 Spring Security is wired the way the trainer's module teaches it:
 
-- **`SecurityConfig`** — a `SecurityFilterChain` with **42 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
+- **`SecurityConfig`** — a `SecurityFilterChain` with **45 request matchers** (open signups and catalogue reads first, then role rules) plus `.anyRequest().permitAll()`, `csrf` disabled and `httpBasic` enabled. A `DaoAuthenticationProvider` pairs `BCryptPasswordEncoder` with `MyUserDetailsService`, which loads a user only when `users.is_active = 1`.
 - **Login** — `GET /api/auth/login` with an HTTP Basic header returns `TokenDto` (`token`, `expiryTime`, `issueTime`). The JWT (HS256, 24-hour expiry, subject = username) is minted by `JwtUtility`.
 - **User details** — `GET /api/auth/user-details` (authenticated) returns `DetailsDto` (`id`, `username`, `isActive`, `role`); for `ROLE_CUSTOMER` the id is swapped to the customer id the cart APIs need, for `ROLE_SELLER` to the seller id the product and order APIs need, and a disabled account raises `InactiveUserException` → HTTP 412. The UI calls it right after login to pick the role's home screen.
 - **Password recovery** — `POST /api/auth/forgot-password` accepts a username or email and returns a generic message plus a single-use, 15-minute token held in the in-memory `PasswordResetTokenStore`; `POST /api/auth/reset-password` consumes it, BCrypt-hashes the new password and burns the token so it cannot be reused.
-- **CORS** — `@CrossOrigin(origins = "http://localhost:5173")` on `AuthController`, `CustomerController` and `CartController`, the three controllers the React UI talks to.
+- **CORS** — a single `CorsConfigurationSource` bean registered on the Spring Security chain allows `http://localhost:5173` for every `/api/**` path, so preflights *and* error responses (401/400) carry the right headers; in Docker and on AWS none is needed at all because nginx proxies `/api` same-origin.
 - **`JwtFilter`** — a `OncePerRequestFilter` registered before Spring's `UsernamePasswordAuthenticationFilter`; it reads `Authorization: Bearer <token>`, validates it, loads the user and pushes the `Role` authorities into the `SecurityContext`.
 - **Role rules** — signups, the user bootstrap and all catalogue/category reads stay open; logout accepts any authenticated JWT; cart, address, checkout, payment and customer reads require `ROLE_CUSTOMER`; product mutations and the seller order screens require `ROLE_SELLER`; analytics, user/seller management and category management require `ROLE_ADMIN`.
 - **Ownership checks** — every customer/seller-scoped service method also receives the authenticated `Principal`'s username and verifies the target resource belongs to that user; a mismatch raises `OwnershipException` → HTTP 400 `ErrorDto`, the same error shape as the rest of the API.
@@ -234,7 +234,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 | Piece | Count | Notes |
 | :-- | :-- | :-- |
 | React UI | 26 components | `quitq-ui/` - login, sign-up, customer catalogue / product / cart / checkout / orders, seller and admin screens, role layouts, page-not-found |
-| Controllers | 11 | 51 endpoints, no class-level `@RequestMapping` |
+| Controllers | 11 | 56 endpoints (auth, catalogue, cart, orders, admin, library) |
 | Services | 11 | Business rules; checkout is a single `@Transactional` method |
 | Repositories | 12 | Derived queries plus four JPQL `@Query` methods — dynamic filter, seller join, group-by stats, LEFT JOIN unpurchased lookup |
 | Entities | 12 | Mapped onto the existing tables (`@Table(name = "users")` etc.) |
@@ -242,7 +242,7 @@ HTTP  ─▶  React UI (quitq-ui, axios + Redux)  ─▶  Spring Security (JwtFi
 | Mappers | 7 | Static entity ↔ DTO conversion |
 | Enums | 5 | `Role`, `ProductStatus`, `OrderStatus`, `PaymentMethod`, `PaymentStatus` |
 | Exceptions | 6 + handler | Custom exceptions (incl. `OwnershipException`, `InactiveUserException`) + `GlobalExceptionHandler` |
-| Security | 42 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks, CORS for the UI |
+| Security | 45 matchers | `SecurityFilterChain`, BCrypt passwords, JWT login (`JwtFilter` / `JwtUtility`), ownership checks, CORS for the UI |
 | Tests | 51 | Unit tests across thirteen classes - six `@ExtendWith(MockitoExtension.class)` service suites plus controller and filter tests (`mvnw.cmd test`) |
 
 > Catalogue reads are open to every caller (`permitAll`); write endpoints need a JWT with the matching role, and every customer/seller operation is additionally checked against the token's owner.
@@ -555,7 +555,7 @@ QuitQ-Ecommerce/
 │   └── src/main/
 │       ├── resources/application.properties   # datasource config
 │       └── java/com/springboot/quitq/
-│           ├── controller/          # 11 controllers · 51 endpoints
+│           ├── controller/          # 11 controllers · 56 endpoints
 │           ├── service/             # business rules + @Transactional checkout
 │           ├── repository/          # JpaRepository, JPQL, derived queries
 │           ├── model/               # 12 entities
